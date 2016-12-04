@@ -13,4 +13,7 @@ compile: bfinterp.c bfinterp.h compare_str.c
 
 t: test
 test: compile
-	pytest test_*.py --doctest-modules --ignore=venv
+	pytest test_*.py --doctest-modules --ignore=venv -vv
+
+clear:
+	- rm -r *.so *.o __pycache__/
