@@ -10,6 +10,11 @@ from interpreter import BF_STATEMENTS
 MAX_INDEL_SIZE = 10
 
 
+def functions() -> iter:
+    """Return mutator functions"""
+    return tuple(all_mutators())
+
+
 def all_mutators() -> tuple:
     return tuple(list(function_mutators()) + list(string_mutators()))
 
