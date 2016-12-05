@@ -39,7 +39,9 @@ class MMH:
         return {
             'score': self.config.score,
             'select': self.config.select,
+            # 'mutate': self.config.mutate,
             'reproduce': self.config.reproduce,
+            # 'create': self.config.create,
         }
 
     def run(self):
