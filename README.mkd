@@ -30,6 +30,26 @@ Later improvements:
 - dissociate right to remain and right to produce childs
 
 
+### Functions and methods naming
+For each of the 5 functions implementing the genetic algorithm (scoring, selection, mutation, reproduction and creation),
+there is a bunch of possible functions, or variations of them.
+The five modules implementing these functions provides the following three normalized functions:
+
+- `named_functions`: returning a dict mapping a method name with the function implementing the method.
+- `anonymous_functions`: returning an iterable of functions implementing unamed methods.
+- `default_functions`: returning an iterable of functions to use when no precise instructions are given.
+
+This is necessary in order to allows the naming of some methods, for simpler referencing in configuration.
+It also introduce the notion of default methods to use when user
+provides nothing, and anonymous methods that have no code name referring them.
+
+For example, a configuration may be reffered as `IOC, PLDD, ALL, SCNP, MOD`,
+meaning that the used functions are `io_comparison` for score, `poolling` for selection,
+all available for mutation, `same_with_child` without parent conservation for reproduction
+and `memory_oriented_diversity` for creation.
+
+
+
 
 ## Meta meta heuristic: a guide for the meta heuristic
 Instead of relying on a human to find the proper configuration to find a problem,
