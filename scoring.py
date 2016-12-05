@@ -8,6 +8,7 @@ import itertools
 from collections import namedtuple
 
 import interpreter
+from utils import named_functions_interface_decorator
 
 
 INTERPRETER = interpreter.load_interpreter()
@@ -23,15 +24,26 @@ RunResult = namedtuple('RunResult', 'score expected found')
 UINT8_MAX = 255  # comes from C stdint.h
 
 
-def functions() -> tuple:
+@named_functions_interface_decorator
+def named_functions() -> dict:
     """Return scoring functions.
 
     A scoring function maps a unit and a test with a score.
 
     """
+    return {
+        'IOC': io_comparison,
+    }
+
+def default_functions() -> tuple:
+    """Return default scoring functions"""
     return (
         io_comparison,
     )
+
+def anonymous_functions() -> tuple:
+    """Return scoring functions that have no name"""
+    return ()
 
 
 def io_comparison(unit, test) -> float:

@@ -22,7 +22,7 @@ No selection function should returns two times the same units in a single call.
 import random
 from functools import partial
 
-from utils import reversed_dict
+from utils import reversed_dict, named_functions_interface_decorator
 
 
 DEFAULT_SELECTION = ((0, 40), )
@@ -30,14 +30,26 @@ DEFAULT_POOL_SIZE = 10
 DEFAULT_SELECTION_SIZE = 0.4
 
 
-def functions() -> iter:
+@named_functions_interface_decorator
+def named_functions() -> dict:
     """Return selection functions"""
+    return {
+        'RSD':  partial(ranking_slices, pattern=DEFAULT_SELECTION),
+        'RS2':  partial(ranking_slices, pattern=((0, 30), (45, 55))),
+        'RSB1': partial(ranking_slices, pattern=((0, 50),)),
+        'PLDD': poolling,
+        'PL1D': partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION),
+    }
+
+def default_functions() -> tuple:
+    """Return default selection functions"""
     return (
-        partial(ranking_slices, pattern=DEFAULT_SELECTION),
-        partial(ranking_slices, pattern=((0, 30), (45, 55))),
-        partial(ranking_slices, pattern=((0, 50),)),
-        partial(poolling, pool_size=DEFAULT_POOL_SIZE, selection_size=DEFAULT_SELECTION),
-        partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION),
+        poolling,
+    )
+
+def anonymous_functions() -> tuple:
+    """Return selection functions that have no name"""
+    return (
         partial(poolling, pool_size=10, selection_size=0.1),
         partial(poolling, pool_size=1, selection_size=0.1),
         partial(poolling, pool_size=20, selection_size=0.6),
@@ -119,6 +131,3 @@ def poolling(scored_units:dict({'indiv': 'score'}),
                     empty_scores.add(score)
         # ignore emptyied scores
         scores = tuple(score for score in scores if score not in empty_scores)
-
-
-

@@ -5,13 +5,23 @@ import itertools
 from collections import defaultdict
 
 from interpreter import BF_STATEMENTS
+from utils import named_functions_interface_decorator
 
 
 MAX_INDEL_SIZE = 10
 
 
-def functions() -> iter:
+@named_functions_interface_decorator
+def named_functions() -> dict:
     """Return mutator functions"""
+    return {}
+
+def default_functions() -> tuple:
+    """Return selection functions that have no name"""
+    return tuple(all_mutators())
+
+def anonymous_functions() -> tuple:
+    """Return selection functions that have no name"""
     return tuple(all_mutators())
 
 

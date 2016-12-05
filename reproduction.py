@@ -9,16 +9,31 @@ from functools import partial
 
 import mutator
 from unit import Unit
+from utils import named_functions_interface_decorator
 
 
 DEFAULT_PARTHENOGENESIS = 0.01
 
 
-def functions() -> iter:
+@named_functions_interface_decorator
+def named_functions() -> dict:
     """Return reproduction functions"""
+    return {
+        'SCP':  partial(same_with_childs, keep_parents=True),
+        'SCNP': partial(same_with_childs, keep_parents=False),
+    }
+
+
+def default_functions() -> tuple:
+    """Return default reproduction functions"""
+    assert named_functions('SCP') is named_functions('SCP')
     return (
-        same_with_childs,
+        named_functions('SCP'),
     )
+
+def anonymous_functions() -> tuple:
+    """Return reproduction functions that have no name"""
+    return ()
 
 
 def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOGENESIS,
