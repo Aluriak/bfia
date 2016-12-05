@@ -38,7 +38,7 @@ def anonymous_functions() -> tuple:
 
 def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOGENESIS,
                      mutators:iter=mutator.all_mutators(),
-                     best_parent:Unit=None) -> iter:
+                     best_parent:Unit=None, keep_parents:bool=True) -> iter:
     """Yield population of size n, generated from given population.
 
     pop -- iterable of units used to build the new pop
@@ -48,10 +48,12 @@ def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOG
     mutators -- list of mutator function. Default is the string related ones.
     best_parent -- the unit that will be used as supplementary parent in case of non-
                    choose randomly if not provided.
+    keep_parents -- set to False to get only the childs and discard parents
+                    from next generation.
 
     """
     pop = list(pop)
-    new = list(pop)
+    new = list(pop) if keep_parents else []
     best_parent = best_parent or random.choice(pop)
     assert len(new) < n
     while len(new) < n:
