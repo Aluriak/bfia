@@ -14,7 +14,11 @@ MAX_INDEL_SIZE = 10
 @named_functions_interface_decorator
 def named_functions() -> dict:
     """Return mutator functions"""
-    return {}
+    return {
+        'ALL': tuple(all_mutators()),
+        'FMT': tuple(function_mutators()),
+        'SMT': tuple(string_mutators()),
+    }
 
 def default_functions() -> tuple:
     """Return selection functions that have no name"""
@@ -22,7 +26,7 @@ def default_functions() -> tuple:
 
 def anonymous_functions() -> tuple:
     """Return selection functions that have no name"""
-    return tuple(all_mutators())
+    return ()
 
 
 def all_mutators() -> tuple:
