@@ -32,6 +32,7 @@ class MMH:
             )
         self.config = config
         self.populations = [self.config.create(self.pop_size)]
+        self.current_step = 1
 
     @property
     def genalg_functions(self) -> dict:
@@ -50,6 +51,9 @@ class MMH:
         """Compute next step"""
         new_pops = []
         for pop in self.populations:
-            new = algogen.step(pop, self.case, self.pop_size, **self.genalg_functions)
+            new = algogen.step(pop, self.case, self.pop_size,
+                               **self.genalg_functions,
+                               step_number=self.current_step)
             new_pops.append(tuple(new))
         self.populations = tuple(new_pops)
+        self.current_step += 1

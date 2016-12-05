@@ -22,7 +22,7 @@ MAX_PRINTED_PROPS = 10
 
 
 def step(pop, case, pop_size:int, score:callable,
-         select:callable, reproduce:callable) -> 'pop':
+         select:callable, reproduce:callable, step_number:int=None) -> 'pop':
     """Compute one step, return the new population"""
     assert callable(score)
     assert callable(select)
@@ -31,6 +31,9 @@ def step(pop, case, pop_size:int, score:callable,
     assert all(isinstance(unit, Unit) for unit in pop)
     assert isinstance(case, Case)
     assert pop
+
+    if step_number is not None:
+        print('# {}'.format(step_number))
 
     with Pool(processes=MULTIPROC_PROCESSES, maxtasksperchild=MULTIPROC_TASK_PER_CHILD) as p:
         scored_pop = dict(zip(pop, p.starmap(score, zip(pop, itertools.repeat(case)))))
