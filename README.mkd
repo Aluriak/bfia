@@ -1,0 +1,45 @@
+# BFIA
+Idea: provide unit tests, let the computer find alone the brainfuck source code that correctly answers to the unit tests.
+Idea#2: use genetic algorithm to generate the code.
+Idea#3: implement a meta meta heuristic in order to optimize the genetic algorithm parameters in real time.
+
+
+## Brainfuck interpreter
+Made in C, very simple. Makefile contains recipes for compilation of both shared lib (used by python code)
+and standalone module, that can read input file and interpret it.
+
+Later improvements:
+- implement parts of [extended brainfuck](http://esolangs.org/wiki/Extended_Brainfuck).
+- implement functions.
+
+
+## Meta heuristic: genetic algorithm
+Implements a population of Unit, where a Unit is basically a BF source code.
+A Unit is conserved for next population and used as parent according to
+both scoring and selections functions.
+
+The scoring function assign for a Unit its performance. Higher is better.
+The selection function choose which Units will have the right to remain and produce childs.
+
+All childs are also given to a mutator, a function that will modify slightly the BF source code,
+bringing variation in the population.
+
+Later improvements:
+- more scoring functions
+- better selection function using scores
+- dissociate right to remain and right to produce childs
+
+
+
+## Meta meta heuristic: a guide for the meta heuristic
+Instead of relying on a human to find the proper configuration to find a problem,
+a meta meta heuristic (MMH) is implemented.
+
+It is a program that tweaks the parameter of the meta heuristic during time,
+looking for quicker convergence to the expected solution.
+
+Some parameters this program can touch:
+- population size
+- population number  (by splitting and merging populations)
+- scoring function
+- selection function
