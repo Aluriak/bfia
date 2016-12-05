@@ -2,14 +2,9 @@
 
 import random
 import itertools
+
+import utils
 from interpreter import BF_STATEMENTS
-
-
-def grouper(iterable, n, fillvalue=None):
-    "Collect data into fixed-length chunks or blocks"  # from itertools doc
-    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
-    args = [iter(iterable)] * n
-    yield from itertools.zip_longest(*args, fillvalue=fillvalue)
 
 
 class Unit:
@@ -22,7 +17,7 @@ class Unit:
 
     def __iter__(self):
         """Iteration over its chromosomes, allowing creation of childs"""
-        return iter(grouper(self.source, self.chrom_size, '\0'))
+        return iter(utils.grouper(self.source, self.chrom_size, '\0'))
 
     def mutate(self, mutators:tuple) -> 'self':
         """Modify the source code in a random way"""
