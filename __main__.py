@@ -12,7 +12,7 @@ POP_SIZE = 400
 
 def main(saver:Saver=None):
     case = Case('', 'hi !')
-    config = Configuration.from_codes(score='IOC', select='PLDD', reproduce='SCNP')
+    config = Configuration.from_codes(score='IOC', select='PLDD', mutate='ALL', reproduce='SCNP')
     # config = Configuration.recipe_best_solution_so_far()
     print('CONFIG:', config)
     print()
