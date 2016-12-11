@@ -31,7 +31,7 @@ class MMH:
                 reproduce=reproduction.functions(),
             )
         self.config = config
-        self.populations = [self.config.create(self.pop_size)]
+        self.populations = [tuple(self.config.create(self.pop_size))]
         self.current_step = 1
 
     @property
