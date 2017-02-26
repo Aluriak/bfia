@@ -48,11 +48,18 @@ class MMH:
 
     def step(self):
         """Compute next step"""
-        new_pops = []
-        for pop in self.populations:
-            new = algogen.step(pop, self.case, self.pop_size,
-                               **self.genalg_functions,
-                               step_number=self.current_step)
-            new_pops.append(tuple(new))
-        self.populations = tuple(new_pops)
+        self.populations = tuple(
+            tuple(self.algogen_call(pop))
+            for pop in self.populations
+        )
         self.current_step += 1
+
+
+    def algogen_call(self, pop):
+        """Call algogen step function"""
+        return self.config.step(
+            pop, self.case, self.pop_size,
+            **self.genalg_functions,
+            step_number=self.current_step
+        )
+
