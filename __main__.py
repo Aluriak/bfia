@@ -13,8 +13,9 @@ POP_SIZE = 400
 
 def main(saver:Saver=None):
     # case = Case('', 'hi !')
-    case = Case(lambda: random.choice('abcd'), 'hi {stdin} !')
-    config = Configuration.from_codes(score='IOC', select='PLDD', mutate='ALL',
+    letters = tuple(chr(c) for c in range(32, 128))
+    case = Case(lambda: random.choice(letters), 'hi {stdin} !')
+    config = Configuration.from_codes(score='IOCBM', select='PLDD', mutate='ALL',
                                       reproduce='SCP', create='AME', step='DIV')
     # config = Configuration.recipe_best_solution_so_far()
     mmh = MMH(case, pop_size=POP_SIZE, config=config)
