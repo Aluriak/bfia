@@ -5,7 +5,10 @@ See mutator.py for usage and interface.
 """
 
 import itertools
-from random import choice, shuffle, randint, randrange
+from random import choice, shuffle, randint, randrange, random
+from collections import defaultdict
+
+from interpreter import BF_STATEMENTS
 
 
 MAX_INDEL_SIZE = 10
