@@ -71,7 +71,7 @@ def step(pop, case, pop_size:int, score:callable,
     assert pop
 
     if step_number is not None:
-        print('# {}'.format(step_number))
+        print('\n\n# Step {}'.format(step_number))
 
     stdin, expected = case
 
@@ -83,8 +83,8 @@ def step(pop, case, pop_size:int, score:callable,
     print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
-    print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3),
-          '\tOUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
+    print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3))
+    print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
 
@@ -111,7 +111,7 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
     assert pop
 
     if step_number is not None:
-        print('# {}'.format(step_number))
+        print('\n\n# Step {}'.format(step_number))
 
     pop = reproduce(pop, pop_size * 2, mutator=mutate)
     stdin, expected = case
@@ -124,8 +124,8 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
     print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
-    print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3),
-          '\tOUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
+    print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3))
+    print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
     return select(scored_pop)
