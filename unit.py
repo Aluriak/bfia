@@ -19,14 +19,12 @@ class Unit:
         """Iteration over its chromosomes, allowing creation of childs"""
         return iter(utils.grouper(self.source, self.chrom_size, '\0'))
 
-    def mutate(self, mutators:tuple) -> 'self':
+    def mutate(self, mutator:callable) -> 'self':
         """Modify the source code in a random way"""
         if random.random() < Unit.MUTATION_RATE:
-            # call one of mutators, randomly
-            random.choice(mutators)(self)
+            mutator(self)
         while random.random() < Unit.ADDITIONAL_MUTATION_RATE:
-            # one more time !
-            random.choice(mutators)(self)
+            mutator(self)  # one more time !
         return self
 
     @staticmethod
