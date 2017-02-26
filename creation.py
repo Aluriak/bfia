@@ -37,7 +37,7 @@ def anonymous_functions() -> tuple:
     return ()
 
 
-def stdin_printer(pop_size:int):
+def stdin_printer(pop_size:int) -> tuple:
     """Return pop_size new Unit instance. Source code is oriented toward
     printing of stdin with workarounds.
 
@@ -47,7 +47,7 @@ def stdin_printer(pop_size:int):
     return tuple(Unit(source, chrom_size) for _ in range(pop_size))
 
 
-def memory_oriented_diversity(pop_size:int):
+def memory_oriented_diversity(pop_size:int) -> tuple:
     """Return pop_size new Unit instance. Source code is oriented toward
     movement and memory management, with less brackets and IO
 
@@ -56,7 +56,7 @@ def memory_oriented_diversity(pop_size:int):
     return tuple(Unit.from_spec(*specs) for _ in range(pop_size))
 
 
-def all_methods_equally(pop_size:int):
+def all_methods_equally(pop_size:int) -> tuple:
     """Return pop_size new Unit instance, using all the others
     creation methods.
 
