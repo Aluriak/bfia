@@ -19,9 +19,17 @@ class MMH:
         assert config
         self.case = case
         self.pop_size = int(pop_size)
-        self.config = config
+        self.config_template = config
+        self._init_config()
         self.populations = [tuple(self.config.create(self.pop_size))]
         self.current_step = 1
+
+
+    def _init_config(self):
+        """Initialize the config, based on the template config"""
+        self.config = self.config_template.specialize()
+        print('MMH CONFIG:\n' + str(self.config))
+
 
     @property
     def genalg_functions(self) -> dict:
