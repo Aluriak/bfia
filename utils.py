@@ -1,4 +1,6 @@
+"""
 
+"""
 
 import itertools
 import functools
@@ -10,7 +12,7 @@ def named_functions_interface_decorator(named_funcs:callable):
     # this trick limits the dictionnary to be computed only one time,
     #  avoiding multiple calls to partial in modules, therefore always
     #  using the same object to describe the same function.
-    #  comment this line, and suddenly the Configuration object will not
+    #  Comment this line, and suddenly the Configuration object will not
     #  be able to find all the codes for some functions.
     named_funcs = functools.lru_cache(maxsize=1)(named_funcs)
     functools.wraps(named_funcs)
