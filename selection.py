@@ -56,7 +56,8 @@ def anonymous_functions() -> tuple:
     )
 
 
-def ranking_slices(scored_units:dict({'indiv': 'score'}), pattern=DEFAULT_SELECTION) -> frozenset:
+def ranking_slices(scored_units:dict({'indiv': 'score'}),
+                   pattern=DEFAULT_SELECTION) -> frozenset:
     """Return a frozenset of selected individuals from given {unit: score}.
 
     Pattern is an iterable of 2-uplet (start, stop), where start and stop are
