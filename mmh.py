@@ -4,11 +4,6 @@
 """
 
 
-import algogen
-import mutator
-import scoring
-import selection
-import reproduction
 from config import Configuration
 
 
@@ -20,16 +15,10 @@ class MMH:
 
     """
 
-    def __init__(self, case:'Case', pop_size:int, config:Configuration=None):
+    def __init__(self, case:'Case', pop_size:int, config:Configuration):
+        assert config
         self.case = case
         self.pop_size = int(pop_size)
-        if config is None:
-            config = Configuration(
-                score=scoring.functions(),
-                mutate=mutator.functions(),
-                select=selection.functions(),
-                reproduce=reproduction.functions(),
-            )
         self.config = config
         self.populations = [tuple(self.config.create(self.pop_size))]
         self.current_step = 1
