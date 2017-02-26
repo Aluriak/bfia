@@ -13,12 +13,33 @@ from collections import Counter
 
 from case import Case
 from unit import Unit
+from utils import named_functions_interface_decorator
 
 
 MULTIPROC_PROCESSES = 16
 MULTIPROC_TASK_PER_CHILD = 32
 # printing
 MAX_PRINTED_PROPS = 10
+
+
+@named_functions_interface_decorator
+def named_functions() -> dict:
+    """Return GA functions"""
+    return {
+        'DIV': step,
+        'SCR': step_cross_first,
+    }
+
+def default_functions() -> tuple:
+    """Return default GA functions"""
+    assert named_functions('DIV') is named_functions('DIV')
+    return (
+        named_functions('DIV'),
+    )
+
+def anonymous_functions() -> tuple:
+    """Return GA functions that have no name"""
+    return ()
 
 
 def step(pop, case, pop_size:int, score:callable,
@@ -43,6 +64,7 @@ def step(pop, case, pop_size:int, score:callable,
     assert callable(score)
     assert callable(select)
     assert callable(reproduce)
+    assert callable(mutate)
     assert isinstance(pop_size, int)
     assert all(isinstance(unit, Unit) for unit in pop)
     assert isinstance(case, Case)
@@ -68,3 +90,42 @@ def step(pop, case, pop_size:int, score:callable,
 
     selected = select(scored_pop)
     return reproduce(selected, pop_size, mutator=mutate)
+
+
+def step_cross_first(pop, case, pop_size:int, score:callable,
+                     select:callable, reproduce:callable, mutate:callable,
+                     step_number:int=None) -> 'pop':
+    """Compute one step, return the new population
+
+    This implementation first produce the new generation, then select.
+    This behavior could tends to favorize mean score increasing.
+
+    """
+    assert callable(score)
+    assert callable(select)
+    assert callable(reproduce)
+    assert callable(mutate)
+    assert isinstance(pop_size, int)
+    assert all(isinstance(unit, Unit) for unit in pop)
+    assert isinstance(case, Case)
+    assert pop
+
+    if step_number is not None:
+        print('# {}'.format(step_number))
+
+    pop = reproduce(pop, pop_size * 2, mutator=mutate)
+    stdin, expected = case
+
+    with Pool(processes=MULTIPROC_PROCESSES, maxtasksperchild=MULTIPROC_TASK_PER_CHILD) as p:
+        scored_pop = dict(zip(pop, p.starmap(score, zip(pop, itertools.repeat((stdin, expected))))))
+
+    best_unit = max(pop, key=lambda u: scored_pop[u].score)
+    best_result = scored_pop[best_unit]
+    print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
+    proportions = Counter(r.score for r in scored_pop.values())
+    print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
+    print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3),
+          '\tOUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
+          ('[SUCCESS]' if best_result.found == best_result.expected else ''))
+    print('SOURCE:', best_unit.source)
+    return select(scored_pop)
