@@ -11,52 +11,82 @@ from collections import namedtuple
 import utils
 import mutator
 import scoring
+import stepping
 import creation
 import selection
 import reproduction
 
 
 class Configuration:
-    """A Configuration object is a choice of functions for each role
+    """A Configuration object is a set of functions for each role
     in the genetic algorithm.
 
     It is basically a group of callables that will be used
     by a genetic algorithm.
 
+    In other word, a Configuration instance yield different functions
+    at each access to the same attribute (score, select,…), because
+    choosing them randomly in the set given to the constructor.
+
+    It provides the specialize method, that return a new configuration
+    with only one choice of function, allowing one to generate a configuration
+
     """
     def __init__(self, score:callable=None, select:callable=None,
                  mutate:callable=None, reproduce:callable=None,
-                 create:callable=None):
+                 create:callable=None, step:callable=None):
         score = score or scoring.default_functions()
         select = select or selection.default_functions()
         mutate = mutate or mutator.default_functions()
         reproduce = reproduce or reproduction.default_functions()
         create = create or creation.default_functions()
-        self._score = score if callable(score) else tuple(score)
-        self._select = select if callable(select) else tuple(select)
-        self._mutate = mutate if callable(mutate) else tuple(mutate)
-        self._reproduce = reproduce if callable(reproduce) else tuple(reproduce)
-        self._create = create if callable(create) else tuple(create)
+        step = step or stepping.default_functions()
+        self._score = (score,) if callable(score) else tuple(score)
+        self._select = (select,) if callable(select) else tuple(select)
+        self._mutate = (mutate,) if callable(mutate) else tuple(mutate)
+        self._reproduce = (reproduce,) if callable(reproduce) else tuple(reproduce)
+        self._create = (create,) if callable(create) else tuple(create)
+        self._step = (step,) if callable(step) else tuple(step)
+
+
+    def specialize(self) -> 'Configuration':
+        """Return a new Configuration where all sets of functions are fixed to a
+        unique function.
+
+        This is a great way to get a specific Configuration, in order to
+        get the same GA implementation for multiple iterations or simulations.
+
+        Note that functions themselves are not modified ; for instance the
+        mutate method will not be fixed to a specific mutation 
+
+        """
+        return Configuration(score=self.score, select=self.select,
+                             mutate=self.mutate, reproduce=self.reproduce,
+                             create=self.create, step=self.step)
 
     @property
     def score(self) -> callable:
-        return self._score if callable(self._score) else random.choice(self._score)
+        return random.choice(self._score)
 
     @property
     def select(self) -> callable:
-        return self._select if callable(self._select) else random.choice(self._select)
+        return random.choice(self._select)
 
     @property
     def mutate(self) -> callable:
-        return self._mutate if callable(self._mutate) else random.choice(self._mutate)
+        return random.choice(self._mutate)
 
     @property
     def reproduce(self) -> callable:
-        return self._reproduce if callable(self._reproduce) else random.choice(self._reproduce)
+        return random.choice(self._reproduce)
 
     @property
     def create(self) -> callable:
-        return self._create if callable(self._create) else random.choice(self._create)
+        return random.choice(self._create)
+
+    @property
+    def step(self) -> callable:
+        return random.choice(self._step)
 
     def __str__(self):
         out = ''
@@ -64,43 +94,42 @@ class Configuration:
                                     (self._select, selection, 'SELECT'),
                                     (self._mutate, mutator, 'MUTATE'),
                                     (self._reproduce, reproduction, 'REPRODUCE'),
-                                    (self._create, creation, 'CREATE')):
-            print(funcs, module, name)
-            if not callable(funcs) and len(funcs) == 1:
-                funcs = funcs[0]
-            if callable(funcs):
-                code = utils.key_of(funcs, module.named_functions(), '')
-                out += '{}: {} {}\n'.format(name, utils.pretty_func(funcs), code)
-            else:
-                out += '{}:\n'.format(name)
-                for func in funcs:
-                    code = utils.key_of(func, module.named_functions(), '')
-                    out += '\t{} {}\n'.format(utils.pretty_func(func), code)
+                                    (self._create, creation, 'CREATE'),
+                                    (self._step, stepping, 'STEP')):
+            out += '{}:\n'.format(name)
+            for func in funcs:
+                code = utils.key_of(func, module.named_functions(), '')
+                out += '\t{} {}\n'.format(utils.pretty_func(func), code)
         return out
-
 
 
     @staticmethod
     def from_codes(score:str=None, select:str=None, mutate:str=None,
-                   reproduce:str=None, create:str=None):
+                   reproduce:str=None, create:str=None, step:str=None):
         """Create configuration from given codes of named functions.
 
-        if a code is None, the default will be used
+        Code can be either None, a valid codename, or an iterable of
+        valid codename.
+        if a code is None, the default will be used.
 
         """
-        score = (scoring.default_functions() if score is None
-                 else scoring.named_functions(score))
-        select = (selection.default_functions() if select is None
-                  else selection.named_functions(select))
-        mutate = (mutator.default_functions() if mutate is None
-                  else mutator.named_functions(mutate))
-        create = (creation.default_functions() if create is None
-                  else creation.named_functions(create))
-        reproduce = (reproduction.default_functions() if reproduce is None
-                     else reproduction.named_functions(reproduce))
-        return Configuration(score=score, select=select, mutate=mutate,
-                             reproduce=reproduce, create=create)
-
+        kwargs = {}
+        for param, value, module in (('score', score, scoring),
+                                     ('select', select, selection),
+                                     ('mutate', mutate, mutator),
+                                     ('reproduce', reproduce, reproduction),
+                                     ('create', create, creation),
+                                     ('step', step, stepping)):
+            print(param, value, module)
+            if isinstance(value, str):  # it's a code name
+                kwargs[param] = module.named_functions(value)
+            elif value is None:  # user wants default
+                kwargs[param] = module.default_functions()
+            else:  # it's an iterable of code name
+                kwargs[param] = tuple(module.named_functions(name) for name in value)
+            print(kwargs)
+            print()
+        return Configuration(**kwargs)
 
 
     @staticmethod
