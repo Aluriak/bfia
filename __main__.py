@@ -14,7 +14,8 @@ POP_SIZE = 400
 def main(saver:Saver=None):
     # case = Case('', 'hi !')
     case = Case(lambda: random.choice('abcd'), 'hi {stdin} !')
-    config = Configuration.from_codes(score='IOC', select='PLDD', mutate='ALL', reproduce='SCP', create='AME')
+    config = Configuration.from_codes(score='IOC', select='PLDD', mutate='ALL',
+                                      reproduce='SCP', create='AME')
     # config = Configuration.recipe_best_solution_so_far()
     print('CONFIG:', config)
     print()
