@@ -120,15 +120,12 @@ class Configuration:
                                      ('reproduce', reproduce, reproduction),
                                      ('create', create, creation),
                                      ('step', step, stepping)):
-            print(param, value, module)
             if isinstance(value, str):  # it's a code name
                 kwargs[param] = module.named_functions(value)
             elif value is None:  # user wants default
                 kwargs[param] = module.default_functions()
             else:  # it's an iterable of code name
                 kwargs[param] = tuple(module.named_functions(name) for name in value)
-            print(kwargs)
-            print()
         return Configuration(**kwargs)
 
 
