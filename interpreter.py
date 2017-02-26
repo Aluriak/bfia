@@ -1,16 +1,17 @@
 
 
 import ctypes
-from functools import partial
+from functools import partial, lru_cache
 
 
 BFIA_C_LIB = './bfinterp.so'
 BF_STATEMENTS = '<>+-[],.'
+CACHE_SIZE = 2**8
 
 
 def load_interpreter():
     ret = ctypes.cdll.LoadLibrary(BFIA_C_LIB)
-    ret.inline = partial(interprete, interpreter=ret)
+    ret.inline = lru_cache(maxsize=CACHE_SIZE)(partial(interprete, interpreter=ret))
     return ret
 
 

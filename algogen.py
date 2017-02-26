@@ -22,8 +22,15 @@ MAX_PRINTED_PROPS = 10
 
 
 def step(pop, case, pop_size:int, score:callable,
-         select:callable, reproduce:callable, step_number:int=None) -> 'pop':
-    """Compute one step, return the new population"""
+         select:callable, reproduce:callable,
+         step_number:int=None) -> 'pop':
+    """Compute one step, return the new population
+
+    This implementation first select the population, then produce
+    the new generation.
+    This behavior could tends to favorize diversity.
+
+    """
     assert callable(score)
     assert callable(select)
     assert callable(reproduce)
