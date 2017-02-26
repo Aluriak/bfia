@@ -22,13 +22,22 @@ MAX_PRINTED_PROPS = 10
 
 
 def step(pop, case, pop_size:int, score:callable,
-         select:callable, reproduce:callable,
+         select:callable, reproduce:callable, mutate:callable,
          step_number:int=None) -> 'pop':
     """Compute one step, return the new population
 
     This implementation first select the population, then produce
     the new generation.
     This behavior could tends to favorize diversity.
+
+    pop -- individuals of current generation
+    case -- Case instance
+    pop_size -- number of individual in the next generation
+    score -- function used for scoring
+    select -- function used for selection
+    reproduce -- function used for reproduction
+    mutate -- function used for mutation
+    step_number -- number of the current step ; only for cosmetic/logging purpose
 
     """
     assert callable(score)
@@ -58,4 +67,4 @@ def step(pop, case, pop_size:int, score:callable,
     print('SOURCE:', best_unit.source)
 
     selected = select(scored_pop)
-    return reproduce(selected, pop_size)
+    return reproduce(selected, pop_size, mutator=mutate)
