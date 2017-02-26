@@ -33,6 +33,8 @@ def named_functions() -> dict:
     """
     return {
         'IOC': io_comparison,
+        'IOCB': io_comparison_with_bonus,
+        'IOCBM': io_comparison_with_bonusmalus,
     }
 
 def default_functions() -> tuple:
@@ -46,12 +48,35 @@ def anonymous_functions() -> tuple:
     return ()
 
 
-def io_comparison(unit, test) -> float:
+def io_comparison_with_bonus(unit, test, interpreter=INTERPRETER, bonus=0.1) -> float:
+    """Like io_comparison, but giving bonus% of bonus of score if found the
+    expected result.
+
+    """
+    score, expected, found = io_comparison(unit, test, interpreter)
+    score *= 1 + (bonus if bonus and found == expected else 0)
+    return RunResult(score, expected, found)
+
+
+def io_comparison_with_bonusmalus(unit, test, interpreter=INTERPRETER,
+                                  bonus=0.1, malus=1) -> float:
+    """Like io_comparison, but giving bonus% of bonus of score if found the
+    expected result, and a malus of malus*source code size.
+
+    """
+    score, expected, found = io_comparison_with_bonus(unit, test, interpreter, bonus)
+    score -= len(unit.source) * (0 if found == expected else malus)
+    return RunResult(score, expected, found)
+
+
+def io_comparison(unit, test, interpreter=INTERPRETER) -> float:
     stdin, expected = test
     # compute and return score
-    found = INTERPRETER.inline(unit.source, stdin, max_output_size=MAX_OUT_SIZE)
+    found = interpreter.inline(unit.source, stdin, max_output_size=MAX_OUT_SIZE)
+    # print('UOGHDP:', interpreter.inline.cache_info())
     assert len(expected) < MAX_OUT_SIZE
-    score = 10000 - compare_str(expected, found)
+    SCORE_BASE = 10_000
+    score = SCORE_BASE - compare_str(expected, found)
     return RunResult(score, expected, found)
 
 
