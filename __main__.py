@@ -15,12 +15,9 @@ def main(saver:Saver=None):
     # case = Case('', 'hi !')
     case = Case(lambda: random.choice('abcd'), 'hi {stdin} !')
     config = Configuration.from_codes(score='IOC', select='PLDD', mutate='ALL',
-                                      reproduce='SCP', create='AME')
+                                      reproduce='SCP', create='AME', step='DIV')
     # config = Configuration.recipe_best_solution_so_far()
-    print('CONFIG:', config)
-    print()
-    mmh = MMH(case, pop_size=POP_SIZE,
-              config=config)
+    mmh = MMH(case, pop_size=POP_SIZE, config=config)
     mmh.run()
 
 if __name__ == "__main__":
