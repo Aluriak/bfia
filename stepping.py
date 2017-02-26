@@ -1,4 +1,4 @@
-"""Implementation of a genetic algorithm.
+"""Implementation of a genetic algorithm step calculation.
 
 Steps:
     - score current generation
