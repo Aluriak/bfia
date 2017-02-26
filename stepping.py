@@ -74,9 +74,7 @@ def step(pop, case, pop_size:int, score:callable,
         print('\n\n# Step {}'.format(step_number))
 
     stdin, expected = case
-
-    with Pool(processes=MULTIPROC_PROCESSES, maxtasksperchild=MULTIPROC_TASK_PER_CHILD) as p:
-        scored_pop = dict(zip(pop, p.starmap(score, zip(pop, itertools.repeat((stdin, expected))))))
+    scored_pop = _multisolve_scoring(stdin, expected, pop, score)
 
     best_unit = max(pop, key=lambda u: scored_pop[u].score)
     best_result = scored_pop[best_unit]
@@ -114,10 +112,10 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
         print('\n\n# Step {}'.format(step_number))
 
     pop = reproduce(pop, pop_size * 2, mutator=mutate)
-    stdin, expected = case
+    assert pop
 
-    with Pool(processes=MULTIPROC_PROCESSES, maxtasksperchild=MULTIPROC_TASK_PER_CHILD) as p:
-        scored_pop = dict(zip(pop, p.starmap(score, zip(pop, itertools.repeat((stdin, expected))))))
+    stdin, expected = case
+    scored_pop = _multisolve_scoring(stdin, expected, pop, score)
 
     best_unit = max(pop, key=lambda u: scored_pop[u].score)
     best_result = scored_pop[best_unit]
@@ -129,3 +127,15 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
     return select(scored_pop)
+
+
+def _multisolve_scoring(stdin, expected, pop, score:callable) -> dict:
+    """Perform the scoring of given population for given stdin and
+    expected result, using given scoring function.
+
+    Return {individual: score}.
+
+    """
+    inputs = itertools.repeat((stdin, expected))
+    with Pool(processes=MULTIPROC_PROCESSES, maxtasksperchild=MULTIPROC_TASK_PER_CHILD) as p:
+        return dict(zip(pop, p.starmap(score, zip(pop, inputs))))
