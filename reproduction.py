@@ -37,7 +37,7 @@ def anonymous_functions() -> tuple:
 
 
 def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOGENESIS,
-                     mutators:iter=mutator.all_mutators(),
+                     mutator:callable=mutator.all_mutators(),
                      best_parent:Unit=None, keep_parents:bool=True) -> iter:
     """Yield population of size n, generated from given population.
 
@@ -45,7 +45,7 @@ def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOG
     n -- size of the returned population
     parthenogenesis -- ratio giving the percentage of chance that an unit use
         clonage instead of seeking for parents. [NOT IMPLEMENTED]
-    mutators -- list of mutator function. Default is the string related ones.
+    mutator -- a mutator function. Default is the full set of available mutations.
     best_parent -- the unit that will be used as supplementary parent in case of non-
                    choose randomly if not provided.
     keep_parents -- set to False to get only the childs and discard parents
@@ -60,6 +60,6 @@ def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOG
         random.shuffle(pop)
         chunks = [iter(pop)] * 2
         for parents in itertools.zip_longest(*chunks, fillvalue=best_parent):
-            new.append(Unit.mutated(Unit.child_from_crossed(parents), mutators))
+            new.append(Unit.mutated(Unit.child_from_crossed(parents), mutator))
             if len(new) >= n: break
     yield from new
