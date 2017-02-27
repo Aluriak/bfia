@@ -28,11 +28,11 @@ def named_functions() -> dict:
     }
 
 def default_functions() -> tuple:
-    """Return selection functions that have no name"""
-    return tuple(all_mutators())
+    """Return default mutation functions"""
+    return named_functions.as_tuple() + anonymous_functions()
 
 def anonymous_functions() -> tuple:
-    """Return selection functions that have no name"""
+    """Return mutation functions that have no name"""
     return ()
 
 

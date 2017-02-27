@@ -32,10 +32,7 @@ def named_functions() -> dict:
 
 def default_functions() -> tuple:
     """Return default GA functions"""
-    assert named_functions('DIV') is named_functions('DIV')
-    return (
-        named_functions('DIV'),
-    )
+    return named_functions.as_tuple() + anonymous_functions()
 
 def anonymous_functions() -> tuple:
     """Return GA functions that have no name"""

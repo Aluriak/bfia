@@ -28,9 +28,7 @@ def named_functions() -> dict:
 
 def default_functions() -> tuple:
     """Return default creation functions"""
-    return (
-        memory_oriented_diversity,
-    )
+    return named_functions.as_tuple() + anonymous_functions()
 
 def anonymous_functions() -> tuple:
     """Return creation functions that have no name"""

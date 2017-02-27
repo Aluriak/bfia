@@ -43,9 +43,7 @@ def named_functions() -> dict:
 
 def default_functions() -> tuple:
     """Return default selection functions"""
-    return (
-        poolling,
-    )
+    return named_functions.as_tuple() + anonymous_functions()
 
 def anonymous_functions() -> tuple:
     """Return selection functions that have no name"""

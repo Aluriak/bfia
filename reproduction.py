@@ -26,10 +26,7 @@ def named_functions() -> dict:
 
 def default_functions() -> tuple:
     """Return default reproduction functions"""
-    assert named_functions('SCP') is named_functions('SCP')
-    return (
-        named_functions('SCP'),
-    )
+    return named_functions.as_tuple() + anonymous_functions()
 
 def anonymous_functions() -> tuple:
     """Return reproduction functions that have no name"""
