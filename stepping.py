@@ -9,7 +9,7 @@ Steps:
 
 import itertools
 from multiprocessing import Pool
-from collections import Counter
+from collections import Counter, namedtuple
 
 from case import Case
 from unit import Unit
@@ -20,6 +20,8 @@ MULTIPROC_PROCESSES = 16
 MULTIPROC_TASK_PER_CHILD = 32
 # printing
 MAX_PRINTED_PROPS = 10
+
+StepResult = namedtuple('StepResult', 'pop, scored_pop')
 
 
 @named_functions_interface_decorator
@@ -84,7 +86,8 @@ def step(pop, case, pop_size:int, score:callable,
     print('SOURCE:', best_unit.source)
 
     selected = select(scored_pop)
-    return reproduce(selected, pop_size, mutator=mutate)
+    final = reproduce(selected, pop_size, mutator=mutate)
+    return StepResult(tuple(final), scored_pop)
 
 
 def step_cross_first(pop, case, pop_size:int, score:callable,
@@ -123,7 +126,7 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
     print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
-    return select(scored_pop)
+    return StepResult(tuple(select(scored_pop)), scored_pop)
 
 
 def _multisolve_scoring(stdin, expected, pop, score:callable) -> dict:
