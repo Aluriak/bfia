@@ -37,6 +37,14 @@ def anonymous_functions() -> tuple:
     return ()
 
 
+def _apply_mutations_randomly(mutators, unit):
+    """Apply randomly given mutators according to unit mutation rates"""
+    if random.random() < unit.mutation_rate:
+        random.choice(mutators)(unit)
+        while random.random() < unit.additional_mutation_rate:
+            random.choice(mutators)(unit)  # one more time !
+
+
 def no_mutators() -> callable:
     """Return a function that never mutate input unit."""
     @functools.wraps(no_mutators)
@@ -52,7 +60,7 @@ def all_mutators() -> callable:
     methods = MUT_FUNC_FUNCTIONAL + MUT_FUNC_STRING
     @functools.wraps(all_mutators)
     def all_mutators_wrapped(unit):
-        random.choice(methods)(unit)
+        _apply_mutations_randomly(methods, unit)
     return all_mutators_wrapped
 
 
@@ -63,7 +71,7 @@ def function_mutators() -> callable:
     """
     @functools.wraps(function_mutators)
     def function_mutators_wrapped(unit):
-        random.choice(MUT_FUNC_FUNCTIONAL)(unit)
+        _apply_mutations_randomly(MUT_FUNC_FUNCTIONAL, unit)
     return function_mutators_wrapped
 
 
@@ -77,5 +85,5 @@ def string_mutators() -> tuple:
     """
     @functools.wraps(string_mutators)
     def string_mutators_wrapped(unit):
-        random.choice(MUT_FUNC_STRING)(unit)
+        _apply_mutations_randomly(MUT_FUNC_STRING, unit)
     return string_mutators_wrapped
