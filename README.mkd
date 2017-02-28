@@ -61,5 +61,4 @@ looking for quicker convergence to the expected solution.
 Some parameters this program can touch:
 - population size
 - population number  (by splitting and merging populations)
-- scoring function
-- selection function
+- scoring, selection, reproduction, mutation, and stepping functions
