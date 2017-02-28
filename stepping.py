@@ -108,7 +108,7 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
     if step_number is not None:
         print('\n\n# Step {}'.format(step_number))
 
-    pop = reproduce(pop, pop_size * 2, mutator=mutate)
+    pop = tuple(reproduce(pop, pop_size * 2, mutator=mutate))
     assert pop
 
     stdin, expected = case
