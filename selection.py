@@ -38,7 +38,7 @@ def named_functions() -> dict:
         'RS2':  partial(ranking_slices, pattern=((0, 30), (45, 55))),
         'RSB1': partial(ranking_slices, pattern=((0, 50),)),
         'PLDD': poolling,
-        'PL1D': partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION),
+        'PL1D': partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION_SIZE),
     }
 
 def default_functions() -> tuple:
