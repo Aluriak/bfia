@@ -15,7 +15,7 @@ def named_functions_interface_decorator(named_funcs:callable):
     #  Comment this line, and suddenly the Configuration object will not
     #  be able to find all the codes for some functions.
     named_funcs = functools.lru_cache(maxsize=1)(named_funcs)
-    functools.wraps(named_funcs)
+    @functools.wraps(named_funcs)
     def wrapper(name:str=None):
         funcs = named_funcs()
         if name:
