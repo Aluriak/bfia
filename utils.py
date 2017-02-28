@@ -26,6 +26,7 @@ def named_functions_interface_decorator(named_funcs:callable):
                                  "{}.".format(name, ', '.join(funcs.keys())))
         # expose the expected API
         return dict(funcs)
+    wrapper.as_tuple = lambda: tuple(wrapper.__wrapped__().values())
     return wrapper
 
 
