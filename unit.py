@@ -64,7 +64,10 @@ class Unit:
     def child_from_crossed(parents:iter, chrom_size:int=None):
         """Return a child produced from parents"""
         assert len(parents) == 2
-        cross = random.randrange(1, min((len(p.source) for p in parents)) - 1)
+        try:
+            cross = random.randrange(1, min((len(p.source) for p in parents)) - 1)
+        except ValueError:
+            cross = 0
         return Unit(
             bf_source=parents[0].source[:cross] + parents[1].source[cross:],
             chrom_size=chrom_size or random.choice([parent.chrom_size for parent in parents])
