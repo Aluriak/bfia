@@ -5,6 +5,7 @@
 
 import random
 import itertools
+import functools
 
 from utils import named_functions_interface_decorator
 import mutator_functions as mutfunc
@@ -38,6 +39,7 @@ def anonymous_functions() -> tuple:
 
 def no_mutators() -> callable:
     """Return a function that never mutate input unit."""
+    @functools.wraps(no_mutators)
     def no_mutators_wrapped(unit):  pass
     return no_mutators_wrapped
 
@@ -48,6 +50,7 @@ def all_mutators() -> callable:
 
     """
     methods = MUT_FUNC_FUNCTIONAL + MUT_FUNC_STRING
+    @functools.wraps(all_mutators)
     def all_mutators_wrapped(unit):
         random.choice(methods)(unit)
     return all_mutators_wrapped
@@ -58,6 +61,7 @@ def function_mutators() -> callable:
     mutation method oriented toward modification of functional parts.
 
     """
+    @functools.wraps(function_mutators)
     def function_mutators_wrapped(unit):
         random.choice(MUT_FUNC_FUNCTIONAL)(unit)
     return function_mutators_wrapped
@@ -71,6 +75,7 @@ def string_mutators() -> tuple:
     the consequences of the change.
 
     """
+    @functools.wraps(string_mutators)
     def string_mutators_wrapped(unit):
         random.choice(MUT_FUNC_STRING)(unit)
     return string_mutators_wrapped
