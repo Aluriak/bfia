@@ -18,7 +18,7 @@ def test_case_basic_api():
 
     # hello <input> !
     c = Case(build_random_id, 'hello {stdin} !')
-    assert not c.callable_input
+    assert     c.callable_input
     assert not c.callable_output
     stdin, stdout = c
     assert stdout.startswith('hello ')
