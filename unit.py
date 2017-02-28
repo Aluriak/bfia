@@ -10,24 +10,27 @@ from interpreter import BF_STATEMENTS
 
 
 class Unit:
-    MUTATION_RATE = 0.05
-    ADDITIONAL_MUTATION_RATE = 0.1
 
-    def __init__(self, bf_source:str, chrom_size:int=8):
+    def __init__(self, bf_source:str, chrom_size:int=8, mutation_rate:float=0.05,
+                 additional_mutation_rate:float=0.1):
         self.source = str(bf_source)
         self.chrom_size = chrom_size
+        self.mutation_rate = float(mutation_rate)
+        self.additional_mutation_rate = float(additional_mutation_rate)
+        assert 0. <= self.mutation_rate <= 1.
+        assert 0. <= self.additional_mutation_rate <= 1.
+
 
     def __iter__(self):
         """Iteration over its chromosomes, allowing creation of childs"""
         return iter(utils.grouper(self.source, self.chrom_size, '\0'))
 
+
     def mutate(self, mutator:callable) -> 'self':
-        """Modify the source code in a random way"""
-        if random.random() < Unit.MUTATION_RATE:
-            mutator(self)
-        while random.random() < Unit.ADDITIONAL_MUTATION_RATE:
-            mutator(self)  # one more time !
+        """Maybe modify the source code in a random way"""
+        mutator(self)
         return self
+
 
     @staticmethod
     def from_spec(source_size:int, chrom_size:int,
