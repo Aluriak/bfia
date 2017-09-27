@@ -4,6 +4,7 @@
 """
 
 
+import itertools
 from config import Configuration
 
 
@@ -23,6 +24,7 @@ class MMH:
         self._init_config()
         self.populations = [tuple(self.config.create(self.pop_size))]
         self.current_step = 1
+        self.change_config_at = lambda sn: sn % 50 == 0
 
 
     def _init_config(self):
@@ -41,21 +43,50 @@ class MMH:
             # 'create': self.config.create,
         }
 
-    def run(self):
-        while True:
+
+    def run(self, step:int=0):
+        """Execute 'step' steps, yielding result at each step,
+        expecting to receive nothing or a new template config.
+
+        If step is <= 0, will run forever.
+
+        """
+        if step > 0:
+            _range = range(self.current_step, self.current_step + step + 1)
+        else:  # run forever
+            _range = itertools.count(self.current_step)
+        for step_num in _range:
             self.step()
+
+
+    def corun(self, step:int=0):
+        """Coroutine. Execute 'step' steps, yielding result at each step,
+        expecting to receive nothing or a new template config.
+
+        If step is <= 0, will run forever.
+
+        """
+        if step > 0:
+            _range = range(self.current_step, self.current_step + step + 1)
+        else:  # run forever
+            _range = itertools.count(self.current_step)
+        for step_num in _range:
+            self.config_template = (yield self.step()) or self.config_template
 
 
     def step(self):
         """Compute next step"""
         new_pops = []
         for pop in self.populations:
-            new_pop, _ = self.algogen_call(pop)
-            new_pops.append(new_pop)
+            new_pop, scored_pop = self.algogen_call(pop)
+            new_pops.append(scored_pop)
         self.populations = tuple(new_pops)
 
         self.current_step += 1
+        if self.change_config_at(self.current_step):
+            self._init_config()
 
+        return self.populations
 
     def algogen_call(self, pop) -> tuple:
         """Call algogen step function, return the StepResult instance"""

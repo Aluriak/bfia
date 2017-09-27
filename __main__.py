@@ -19,7 +19,8 @@ def main(saver:Saver=None):
                                       reproduce='SCP', create='AME', step='DIV')
     # config = Configuration.recipe_best_solution_so_far()
     mmh = MMH(case, pop_size=POP_SIZE, config=config)
-    mmh.run()
+    while True:
+        next(mmh.run())
 
 if __name__ == "__main__":
     main()
