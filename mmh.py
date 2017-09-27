@@ -78,8 +78,12 @@ class MMH:
         """Compute next step"""
         new_pops = []
         for pop in self.populations:
-            new_pop, scored_pop = self.algogen_call(pop)
-            new_pops.append(scored_pop)
+            print('PHGWZZ:', len(pop))
+            len_pop = len(pop)
+            new_pop, scored_old_pop = self.algogen_call(pop)
+            assert len(pop) == len(new_pop)
+            assert new_pop != pop
+            new_pops.append(new_pop)
         self.populations = tuple(new_pops)
 
         self.current_step += 1

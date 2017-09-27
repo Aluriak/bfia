@@ -21,7 +21,7 @@ MULTIPROC_TASK_PER_CHILD = 32
 # printing
 MAX_PRINTED_PROPS = 10
 
-StepResult = namedtuple('StepResult', 'pop, scored_pop')
+StepResult = namedtuple('StepResult', 'pop, scored_old_pop')
 
 
 @named_functions_interface_decorator

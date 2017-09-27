@@ -43,12 +43,27 @@ def run_simple_cases(saver:Saver):
     for case_name, case in CASES.items():
         print('#'*80)
         print('#', case_name)
+        # current_step = 0
+        # pop = config.create(POP_SIZE)
+        # while True:
+            # current_step += 1
+            # pop, scored_pop = config.step(
+                # pop, case, POP_SIZE,
+                # score=config.score,
+                # select=config.select,
+                # mutate=config.mutate,
+                # reproduce=config.reproduce,
+                # step_number=current_step
+            # )
+            # saver.save([current_step, max(s.score for s in scored_pop.values())])
         mmh = MMH(case, pop_size=POP_SIZE, config=config)
         for pops in mmh.corun():
             assert len(pops) == 1  # currently multipop is not implemented
             pop = pops[0]
-            scores = tuple(v.score for v in pop.values())
-            saver.save([mmh.current_step, max(scores)])
+            assert len(pop) == POP_SIZE
+            # print(pop)
+            # scores = tuple(v.score for v in pop.values())
+            # saver.save([mmh.current_step, max(scores)])
         print('#'*80)
         print()
 
