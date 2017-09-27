@@ -29,7 +29,7 @@ def named_functions() -> dict:
     """Return GA functions"""
     return {
         'DIV': step,
-        'SCR': step_cross_first,
+        # 'SCR': step_cross_first,  # TODO: DOESN'T WORK PROPERLY (LOGIC PROBLEM)
     }
 
 def default_functions() -> tuple:
@@ -95,7 +95,8 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
                      step_number:int=None) -> 'pop':
     """Compute one step, return the new population
 
-    This implementation first produce the new generation, then select.
+    This implementation first produce the new generation, then select
+    among the bests.
     This behavior could tends to favorize mean score increasing.
 
     """
@@ -116,6 +117,11 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
 
     stdin, expected = case
     scored_pop = _multisolve_scoring(stdin, expected, pop, score)
+
+    # keep only the bests.  TODO: NEED SEARCH ABOUT HOW TO IMPLEMENT THIS.
+    scored_pop = dict(itertool.islice(sorted(scored_pop.items(), reverse=True, key=itemgetter(1)), 0, pop_size))
+    for score in sorted(pop_by_score, reverse=True):
+        score
 
     best_unit = max(pop, key=lambda u: scored_pop[u].score)
     best_result = scored_pop[best_unit]
