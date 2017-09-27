@@ -12,7 +12,7 @@ from utils import named_functions_interface_decorator
 
 
 INTERPRETER = interpreter.load_interpreter()
-MAX_OUT_SIZE = 32  # maximal size of program output
+MAX_OUT_SIZE = 2048  # maximal size of program output
 
 # Access the string comparison function implemented in C
 COMPARE_STR_C_LIB = './compare_str.so'
