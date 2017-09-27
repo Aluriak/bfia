@@ -7,6 +7,9 @@ import time
 import glob
 import csv
 
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 import pandas as pd
 
 import commons
@@ -22,16 +25,20 @@ class Saver:
     """
     FILE_TEMPLATE = 'data_{}.csv'
 
-    def __init__(self, fields:iter=['max_score'], defaults:iter=None,
-                 fileid:str='', datadir:str=commons.DATA_DIR):
+    def __init__(self, fields:iter=['step', 'max_score'], defaults:iter=None,
+                 fileid:str='', datadir:str=commons.DATA_DIR,
+                 plotter:callable=lambda df: df.plot(x=['step'])):
         """
 
         fields -- column name, in order expected by later save() calls.
         defaults -- default values for columns, if not provided in call params.
         fileid -- string added to filename in order to facilitate its
             identification when humans looks for it.
+        plotter -- dataframe to plot function used by plot() method
 
         """
+        assert callable(plotter)
+        self.plotter = plotter
         self.fileid = str(fileid)
         self.fields = tuple(str(_) for _ in fields)
         self.datadir = str(datadir)
@@ -55,7 +62,7 @@ class Saver:
         fieldvalues = list(fieldvalues)
         if len(fieldvalues) < len(self.fields):
             fieldvalues += list(self.defaults)[len(self.fields) - len(fieldvalues):]
-        self.writer.writerow([self.nb_row] + fieldvalues)
+        self.writer.writerow(fieldvalues)
 
     def commit(self, *, first_time=False):
         if not first_time:
@@ -70,17 +77,27 @@ class Saver:
         return glob.glob(commons.DATA_DIR_TEMPLATE.format('*') + 'data_*.csv')
 
 
-    @staticmethod
-    def plot(filename:str=None):
+    def plot(self, filename:str=None):
         """Plot data in given file.
 
         filename -- data is there. If not valid, seek for latest file, based on name.
 
         """
         if not filename:
-            filename = max(data_files())
-        # TODO
-        df = pd.read_csv(filename, index_col=0)
+            filename = max(Saver.data_files())
+        df = pd.read_csv(filename)
         print('DATAFRAME:', df)
-        plot = df.boxplot()
-        print(type(plot), plot)
+        plot = self.plotter(df)
+        plt.show()
+
+
+class ScoreSaver(Saver):
+    """Override specific methods of Saver in order to manage data
+    as a 3-uplet (scores:tuple, min:int, max:int).
+
+    """
+
+    def __init__(self, fields:iter=['scores', 'min_score', 'max_score'], defaults:iter=None,
+                 fileid:str='', datadir:str=commons.DATA_DIR,
+                 plotter:callable=lambda df: df.boxplot('max_score', by=['step'])):
+        super().__init__(fields, defaults, fileid, datadir, plotter)
