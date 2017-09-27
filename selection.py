@@ -104,7 +104,8 @@ def poolling(scored_units:dict({'indiv': 'score'}),
     if not isinstance(selection_size, int):
         assert isinstance(selection_size, float), "Input selection_size should be int or float"
         assert 0. <= selection_size <= 1., "Input selection_size should be in [0;1]"
-        selection_size = int(round(selection_size * len(scored_units)))
+        selection_size = max(1, int(round(selection_size * len(scored_units))))
+    assert selection_size > 0, "selection_size can't be equal to {} ({})".format(selection_size, type(selection_size))
 
     units_per_score = {}  # {score: iter(units)}
     for score, units in reversed_dict(scored_units, cast=list).items():
@@ -115,18 +116,19 @@ def poolling(scored_units:dict({'indiv': 'score'}),
         units_per_score[score] = iter(units)
     scores = tuple(sorted(tuple(units_per_score.keys()), reverse=True))
 
-    nb_ret = 0
-    while nb_ret < selection_size:
-        empty_scores = set()
+    nb_yield = 0
+    while nb_yield < selection_size:
+        empty_scores = set()  # scores associated with empty generator of units
         for score in scores:
             for _ in range(pool_size):
                 try:
                     yield next(units_per_score[score])
-                    nb_ret += 1
-                    if nb_ret >= selection_size:
-                        return  # selection size is reached
                 except StopIteration:
                     # there is no more unit at this score.
                     empty_scores.add(score)
+                else:
+                    nb_yield += 1
+                    if nb_yield >= selection_size:
+                        return  # selection size is reached
         # ignore emptyied scores
         scores = tuple(score for score in scores if score not in empty_scores)

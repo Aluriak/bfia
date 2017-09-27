@@ -59,7 +59,7 @@ def all_methods_equally(pop_size:int) -> tuple:
     creation methods.
 
     """
-    methods = frozenset(
+    methods = tuple(
         method
         for method in set(named_functions().values()) | set(anonymous_functions())
         if method is not all_methods_equally

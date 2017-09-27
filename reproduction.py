@@ -50,6 +50,7 @@ def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOG
 
     """
     pop = list(pop)
+    assert pop, "given pop can't be empty"
     new = list(pop) if keep_parents else []
     best_parent = best_parent or random.choice(pop)
     if len(new) == n:

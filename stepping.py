@@ -85,9 +85,11 @@ def step(pop, case, pop_size:int, score:callable,
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
 
-    selected = select(scored_pop)
-    final = reproduce(selected, pop_size, mutator=mutate)
-    return StepResult(tuple(final), scored_pop)
+    selected = tuple(select(scored_pop))
+    assert selected, "at least one individual must be selected"
+    final = tuple(reproduce(selected, pop_size, mutator=mutate))
+    assert len(final) == pop_size, "new pop must have a size of {} ({}), not {}".format(pop_size, type(pop_size), len(final))
+    return StepResult(final, scored_pop)
 
 
 def step_cross_first(pop, case, pop_size:int, score:callable,
