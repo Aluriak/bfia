@@ -16,13 +16,13 @@ class MMH:
 
     """
 
-    def __init__(self, case:'Case', pop_size:int, config:Configuration):
+    def __init__(self, case:'Case', pop_size:int, config:Configuration, pop_number:int=1):
         assert config
         self.case = case
         self.pop_size = int(pop_size)
         self.config_template = config
         self._init_config()
-        self.populations = [tuple(self.config.create(self.pop_size))]
+        self.populations = [tuple(self.config.create(self.pop_size)) for _ in range(pop_number)]
         self.current_step = 1
         self.change_config_at = lambda sn: sn % 50 == 0
 
@@ -88,6 +88,7 @@ class MMH:
 
         return self.populations
 
+
     def algogen_call(self, pop) -> tuple:
         """Call algogen step function, return the StepResult instance"""
         return self.config.step(
@@ -95,3 +96,8 @@ class MMH:
             **self.genalg_functions,
             step_number=self.current_step
         )
+
+
+    def create_populations(self, nb:int=1):
+        """Add a population initialized with one create method"""
+        self.populations.append(self.config.create(self.pop_size))
