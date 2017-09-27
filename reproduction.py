@@ -52,7 +52,11 @@ def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOG
     pop = list(pop)
     new = list(pop) if keep_parents else []
     best_parent = best_parent or random.choice(pop)
-    assert len(new) < n
+    if len(new) == n:
+        print("same_with_childs: population of {} parents can't reproduce, "
+              "because final population already have {} individuals"
+              "".format(len(new), n))
+    assert len(new) <= n
     while len(new) < n:
         random.shuffle(pop)
         chunks = [iter(pop)] * 2
