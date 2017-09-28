@@ -59,16 +59,13 @@ def run_simple_cases(saver:Saver):
                 # step_number=current_step
             # )
             # saver.save([current_step, max(s.score for s in scored_pop.values())])
-        def on_gen(step, scored, max_score, min_score):
+        def on_gen(step, scored, max_score, min_score, config):
             saver.save([step, max_score])
         mmh = MMH(case, pop_size=POP_SIZE, config=config, data_handler=on_gen)
         for pops in mmh.corun():
             assert len(pops) == 1  # currently multipop is not implemented
             pop = pops[0]
             assert len(pop) == POP_SIZE
-            # print(pop)
-            # scores = tuple(v.score for v in pop.values())
-            # saver.save([mmh.current_step, max(scores)])
         print('#'*80)
         print()
 
