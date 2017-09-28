@@ -5,6 +5,7 @@
 import ctypes
 import random
 import itertools
+from functools import partial
 from collections import namedtuple
 
 import interpreter
@@ -35,6 +36,8 @@ def named_functions() -> dict:
         'IOC': io_comparison,
         'IOCB': io_comparison_with_bonus,
         'IOCBM': io_comparison_with_bonusmalus,
+        'IOSOFT': partial(io_comparison, length_penalty=UINT8_MAX//2),
+        'IOCBMSOFT': partial(io_comparison_with_bonusmalus, length_penalty=UINT8_MAX//2),
     }
 
 def default_functions() -> tuple:
@@ -46,35 +49,35 @@ def anonymous_functions() -> tuple:
     return ()
 
 
-def io_comparison_with_bonus(unit, test, interpreter=INTERPRETER, bonus=0.1) -> float:
-    """Like io_comparison, but giving bonus% of bonus of score if found the
-    expected result.
-
-    """
-    score, expected, found = io_comparison(unit, test, interpreter)
-    score *= 1 + (bonus if bonus and found == expected else 0)
-    return RunResult(score, expected, found)
-
-
-def io_comparison_with_bonusmalus(unit, test, interpreter=INTERPRETER,
-                                  bonus=0.1, malus=1) -> float:
-    """Like io_comparison, but giving bonus% of bonus of score if found the
-    expected result, and a malus of malus*source code size.
-
-    """
-    score, expected, found = io_comparison_with_bonus(unit, test, interpreter, bonus)
-    score -= len(unit.source) * (0 if found == expected else malus)
-    return RunResult(score, expected, found)
-
-
-def io_comparison(unit, test, interpreter=INTERPRETER) -> float:
+def io_comparison(unit, test, interpreter=INTERPRETER, length_penalty:int=UINT8_MAX) -> float:
     stdin, expected = test
     # compute and return score
     found = interpreter.inline(unit.source, stdin, max_output_size=MAX_OUT_SIZE)
     # print('UOGHDP:', interpreter.inline.cache_info())
     assert len(expected) < MAX_OUT_SIZE
-    SCORE_BASE = 10_000
-    score = SCORE_BASE - compare_str(expected, found)
+    SCORE_BASE = 10000
+    score = SCORE_BASE - compare_str(expected, found, length_penalty=length_penalty)
+    return RunResult(score, expected, found)
+
+
+def io_comparison_with_bonus(unit, test, interpreter=INTERPRETER, bonus=0.1, length_penalty:int=UINT8_MAX) -> float:
+    """Like io_comparison, but giving bonus% of bonus of score if found the
+    expected result.
+
+    """
+    score, expected, found = io_comparison(unit, test, interpreter, length_penalty)
+    score *= 1 + (bonus if found == expected else 0)
+    return RunResult(score, expected, found)
+
+
+def io_comparison_with_bonusmalus(unit, test, interpreter=INTERPRETER,
+                                  bonus=0.1, malus=1, length_penalty:int=UINT8_MAX) -> float:
+    """Like io_comparison, but giving bonus% of bonus of score if found the
+    expected result, and a malus of malus*source code size.
+
+    """
+    score, expected, found = io_comparison_with_bonus(unit, test, interpreter, bonus, length_penalty)
+    score -= len(unit.source) * (0 if found == expected else malus)
     return RunResult(score, expected, found)
 
 
