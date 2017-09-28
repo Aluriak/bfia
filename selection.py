@@ -29,6 +29,8 @@ DEFAULT_SELECTION = ((0, 40), )
 DEFAULT_POOL_SIZE = 10
 DEFAULT_SELECTION_SIZE = 0.4
 
+DEFAULT_PROB_FUNCTION = lambda x, mn, mx: (x - (mn-1)) / ((mx - (mn-1))+1)
+
 
 @named_functions_interface_decorator
 def named_functions() -> dict:
@@ -40,7 +42,7 @@ def named_functions() -> dict:
         'PLDD': poolling,
         'PL1D': partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION_SIZE),
         'DL': decreasing_likelihood,
-        'DLR': partial(decreasing_likelihood, on_rank=True),
+        'DLR': decreasing_likelihood_on_rank,
     }
 
 def default_functions() -> tuple:
@@ -85,31 +87,63 @@ def ranking_slices(scored_units:dict({'indiv': 'score'}),
     return frozenset(returned)
 
 
-def decreasing_likelihood(scored_units:dict({'indiv': 'score'}),
-                          on_rank:bool=True,
-                          prob_function:callable=lambda x, mn, mx: (x - mn) / ((mx - mn)*1.01)) -> iter:
+def decreasing_likelihood_on_rank(scored_units:dict({'indiv': 'score'}),
+                                  prob_function:callable=DEFAULT_PROB_FUNCTION) -> iter:
     """Yield selected individuals from given {unit: score}.
 
     Individuals are randomly kept or not, with a keeping likelihood
-    function to their score. The higher score, the greater
+    function to their rank. The higher rank, the greater
     chances an individual have to be selected.
+    The greater rank is associated with the greater score.
 
-    on_rank -- use ranks instead of score to determine selection likelihood
     prob_function -- the map (score, min_score, max_score) -> selection likelihood
 
     By default, prob_function is a function that theorically allow
     the best units to not be selected.
 
     """
-    if on_rank:
-        min_score, max_score = len(scored_units), 1
-    else:  # use score
-        min_score, max_score = min(scored_units.values()), max(scored_units.values())
+    # units ordered by decreasing score
+    ordered_units = sorted(tuple(scored_units.keys()), key=lambda k: scored_units[k], reverse=True)
+    min_rank, max_rank = 1, len(scored_units)
+
+    yield from decreasing_likelihood(
+        {unit: rank for rank, unit in zip(range(max_rank, min_rank - 1, -1), ordered_units)},
+        prob_function,
+        min_score= min_rank,
+        max_score= max_rank,
+    )
+
+
+def decreasing_likelihood(scored_units:dict({'indiv': 'score'}),
+                          prob_function:callable=DEFAULT_PROB_FUNCTION,
+                          min_score:int=None, max_score:int=None) -> iter:
+    """Yield selected individuals from given {unit: score}.
+
+    Individuals are randomly kept or not, with a keeping likelihood
+    function to their score. The higher score, the greater
+    chances an individual have to be selected.
+
+    prob_function -- the map (score, min_score, max_score) -> selection likelihood
+    min_score -- minimal score found in scored units
+    max_score -- maximal score found in scored units
+
+    By default, prob_function is a function that theorically allow
+    the best units to not be selected.
+
+    By default, min and max scores are not given. In this case,
+    the min and max will be searched using min() and max()
+    on scored_units.values().
+    Unless you have the min and max when calling this function, you probably
+    want to keep the default behavior.
+
+    """
+    min_score = min_score or min(unit.score for unit in scored_units.values())
+    max_score = max_score or max(unit.score for unit in scored_units.values())
     one_unit_yielded = False  # ensure that at least one unit is yield
     # TODO: manage case where all probabilities are zero
     while not one_unit_yielded:
-        for rank, (unit, score) in enumerate(scored_units.items(), start=1):
-            prob = prob_function(rank if on_rank else score, min_score, max_score)
+        for unit, score in scored_units.items():
+            prob = prob_function(getattr(score, 'score', score), min_score, max_score)
             if random.random() < prob:
                 yield unit
                 one_unit_yielded = True
