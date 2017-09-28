@@ -4,6 +4,7 @@ See mutator.py for usage and interface.
 
 """
 
+import re
 import itertools
 from random import choice, shuffle, randint, randrange, random
 from collections import defaultdict
@@ -24,10 +25,10 @@ def loop_transposition(unit):
 
 
 def output_interleaving(unit):
-    iochars = ['.', ',']
-    shuffle(iochars)
-    if '..' in unit.source:
-        chars_pos = unit.source.find('..')
+    reg = re.compile('\.\.')
+    matches = tuple(match.start() for match in reg.finditer(unit.source))
+    if matches:
+        chars_pos = choice(matches)
         src = unit.source
         unit.source = src[:chars_pos] + choice(BF_STATEMENTS) + src[chars_pos:]
     else:
