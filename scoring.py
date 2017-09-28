@@ -78,15 +78,17 @@ def io_comparison(unit, test, interpreter=INTERPRETER) -> float:
     return RunResult(score, expected, found)
 
 
-def compare_str_c(one, two) -> int:
+def compare_str_c(one, two, length_penalty:int=UINT8_MAX, apply_length_penalty:bool=True,
+                  apply_penalty_for_missing_letters:bool=False) -> int:
     """Wrapper around C function implementing string comparison"""
     one, two = one.encode(), two.encode()
-    return c_func_compare_str(one, two, len(one), len(two))
+    return c_func_compare_str(one, two, len(one), len(two), length_penalty,
+                              apply_length_penalty, apply_penalty_for_missing_letters)
 
-def compare_str_py(one, two) -> int:
+def compare_str_py(one, two, length_penalty:int=UINT8_MAX) -> int:
     """Implementation of the string comparator in python"""
     one, two = one.encode(), two.encode()
-    return sum(UINT8_MAX if None in (a, b) else abs(a - b)
+    return sum(length_penalty if None in (a, b) else abs(a - b)
                for a, b in itertools.zip_longest(one, two))
 
 
