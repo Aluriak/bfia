@@ -58,7 +58,7 @@ def step(pop, case, pop_size:int, score:callable,
     reproduce -- function used for reproduction
     mutate -- function used for mutation
     step_number -- number of the current step ; only for cosmetic/logging purpose
-    callback_stats -- a callback that will get (scored_pop, max, min)
+    callback_stats -- a callback that will get (step, scored_pop, max, min)
 
     """
     assert callable(score)
@@ -82,12 +82,12 @@ def step(pop, case, pop_size:int, score:callable,
     print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
 
     # call the user defined data handling
-    callback_stats(scored_pop, best_result, min(scored_pop.values()))
+    callback_stats(step_number, scored_pop, best_result.score, min(scored_pop.values()))
 
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
     print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3))
-    print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
+    print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect "{}")'.format(best_result.expected),
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
 
