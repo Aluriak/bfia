@@ -43,7 +43,7 @@ def anonymous_functions() -> tuple:
 
 def step(pop, case, pop_size:int, score:callable,
          select:callable, reproduce:callable, mutate:callable,
-         step_number:int=None) -> 'pop':
+         step_number:int=None, callback_stats:callable=(lambda sp, mx, mn: None)) -> 'pop':
     """Compute one step, return the new population
 
     This implementation first select the population, then produce
@@ -58,12 +58,14 @@ def step(pop, case, pop_size:int, score:callable,
     reproduce -- function used for reproduction
     mutate -- function used for mutation
     step_number -- number of the current step ; only for cosmetic/logging purpose
+    callback_stats -- a callback that will get (scored_pop, max, min)
 
     """
     assert callable(score)
     assert callable(select)
     assert callable(reproduce)
     assert callable(mutate)
+    assert callable(callback_stats)
     assert isinstance(pop_size, int)
     assert all(isinstance(unit, Unit) for unit in pop)
     assert isinstance(case, Case)
@@ -78,6 +80,10 @@ def step(pop, case, pop_size:int, score:callable,
     best_unit = max(pop, key=lambda u: scored_pop[u].score)
     best_result = scored_pop[best_unit]
     print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
+
+    # call the user defined data handling
+    callback_stats(scored_pop, best_result, min(scored_pop.values()))
+
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
     print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3))
