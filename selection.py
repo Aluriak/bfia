@@ -39,6 +39,8 @@ def named_functions() -> dict:
         'RSB1': partial(ranking_slices, pattern=((0, 50),)),
         'PLDD': poolling,
         'PL1D': partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION_SIZE),
+        'DL': decreasing_likelihood,
+        'DLR': partial(decreasing_likelihood, on_rank=True),
     }
 
 def default_functions() -> tuple:
@@ -81,6 +83,36 @@ def ranking_slices(scored_units:dict({'indiv': 'score'}),
             if start <= percent <= stop:
                 returned.add(unt)
     return frozenset(returned)
+
+
+def decreasing_likelihood(scored_units:dict({'indiv': 'score'}),
+                          on_rank:bool=True,
+                          prob_function:callable=lambda x, mn, mx: (x - mn) / ((mx - mn)*1.01)) -> iter:
+    """Yield selected individuals from given {unit: score}.
+
+    Individuals are randomly kept or not, with a keeping likelihood
+    function to their score. The higher score, the greater
+    chances an individual have to be selected.
+
+    on_rank -- use ranks instead of score to determine selection likelihood
+    prob_function -- the map (score, min_score, max_score) -> selection likelihood
+
+    By default, prob_function is a function that theorically allow
+    the best units to not be selected.
+
+    """
+    if on_rank:
+        min_score, max_score = len(scored_units), 1
+    else:  # use score
+        min_score, max_score = min(scored_units.values()), max(scored_units.values())
+    one_unit_yielded = False  # ensure that at least one unit is yield
+    # TODO: manage case where all probabilities are zero
+    while not one_unit_yielded:
+        for rank, (unit, score) in enumerate(scored_units.items(), start=1):
+            prob = prob_function(rank if on_rank else score, min_score, max_score)
+            if random.random() < prob:
+                yield unit
+                one_unit_yielded = True
 
 
 def poolling(scored_units:dict({'indiv': 'score'}),
