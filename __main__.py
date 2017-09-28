@@ -34,8 +34,10 @@ def run_simple_cases(saver:Saver):
     numbers = tuple(chr(c) for c in range(64, 128))
     CASES = {
         'hi !': Case('', 'hi !'),
-        'hi {input} !': Case(lambda: random.choice(letters), 'hi {stdin} !'),
-        'division by 2': Case(lambda: random.choice(numbers), lambda x: chr(ord(x) // 2)),
+        # 'hi {input} !': Case(lambda: random.choice(letters), 'hi {stdin} !'),
+        # 'hello world': Case('', 'hello, world!'),
+        # 'greetings': Case(lambda: random.choice(letters), 'hello {stdin} !'),
+        # 'division by 2': Case(lambda: random.choice(numbers), lambda x: chr(ord(x) // 2)),
     }
     # build the motif
     config = Configuration.recipe_best_solution_so_far()
