@@ -12,7 +12,8 @@ import mutator_functions as mutfunc
 
 
 MUT_FUNC_FUNCTIONAL = (mutfunc.loop_transposition, mutfunc.io_change,
-                       mutfunc.io_transposition, mutfunc.group_transition)
+                       mutfunc.io_transposition, mutfunc.output_interleaving,
+                       mutfunc.group_transition, mutfunc.number_complementary)
 MUT_FUNC_STRING = (mutfunc.transition, mutfunc.addition, mutfunc.deletion,
                    mutfunc.transposition, mutfunc.single_deletion,
                    mutfunc.single_addition, mutfunc.reversion)

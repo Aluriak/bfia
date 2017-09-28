@@ -23,6 +23,17 @@ def loop_transposition(unit):
         transition(unit)  # call a normal transition
 
 
+def output_interleaving(unit):
+    iochars = ['.', ',']
+    shuffle(iochars)
+    if '..' in unit.source:
+        chars_pos = unit.source.find('..')
+        src = unit.source
+        unit.source = src[:chars_pos] + choice(BF_STATEMENTS) + src[chars_pos:]
+    else:
+        io_transposition(unit)
+
+
 def io_change(unit):
     iochars = ['.', ',']
     shuffle(iochars)
@@ -58,6 +69,18 @@ def group_transition(unit):
         nb * (MAPS.get(char, char) if random() < PROB else char)
         for char, nb in _grouped_characters(unit.source)
     ))
+
+
+def number_complementary(unit, max_int:int=128, likelihood:float=0.5):
+    src = ''
+    for char, nb in _grouped_characters(unit.source):
+        if char == '+' and random() < likelihood:  # replace by minus to achieve the same number
+            src += (max_int - nb) * '-'
+        elif char == '-' and random() < likelihood:  # replace by plus to achive the same number
+            src += (max_int - nb) * '+'
+        else:  # regular behavior
+            src += nb * char
+    unit.source = src
 
 
 def transition(unit):
