@@ -16,7 +16,17 @@ class MMH:
 
     """
 
-    def __init__(self, case:'Case', pop_size:int, config:Configuration, pop_number:int=1):
+    def __init__(self, case:'Case', pop_size:int, config:Configuration,
+                 pop_number:int=1, data_handler:callable=None):
+        """
+
+        case -- a test case to validate
+        pop_size -- size of the population (to remove/change when multipop is handled)
+        config -- the Configuration instance describing the metaheuristic
+        pop_number -- number of populations to spawn at start
+        data_handler -- a callback called by stepping function with scored pop and max/min scores
+
+        """
         assert config
         self.case = case
         self.pop_size = int(pop_size)
@@ -25,6 +35,7 @@ class MMH:
         self.populations = [tuple(self.config.create(self.pop_size)) for _ in range(pop_number)]
         self.current_step = 1
         self.change_config_at = lambda sn: sn % 50 == 0
+        self.data_handler = data_handler
 
 
     def _init_config(self):
@@ -78,7 +89,6 @@ class MMH:
         """Compute next step"""
         new_pops = []
         for pop in self.populations:
-            print('PHGWZZ:', len(pop))
             len_pop = len(pop)
             new_pop, scored_old_pop = self.algogen_call(pop)
             assert len(pop) == len(new_pop)
@@ -98,7 +108,8 @@ class MMH:
         return self.config.step(
             pop, self.case, self.pop_size,
             **self.genalg_functions,
-            step_number=self.current_step
+            step_number=self.current_step,
+            **{'callback_stats': self.data_handler} if self.data_handler else {}
         )
 
 
