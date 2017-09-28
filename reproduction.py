@@ -51,17 +51,17 @@ def same_with_childs(pop:iter, n:int, *, parthenogenesis:float=DEFAULT_PARTHENOG
     """
     pop = list(pop)
     assert pop, "given pop can't be empty"
-    new = list(pop) if keep_parents else []
+
+    remain_to_yield = n
+    if keep_parents:
+        yield from pop
+        remain_to_yield -= len(pop)
+
     best_parent = best_parent or random.choice(pop)
-    if len(new) == n:
-        print("same_with_childs: population of {} parents can't reproduce, "
-              "because final population already have {} individuals"
-              "".format(len(new), n))
-    assert len(new) <= n
-    while len(new) < n:
+    while remain_to_yield:
         random.shuffle(pop)
         chunks = [iter(pop)] * 2
         for parents in itertools.zip_longest(*chunks, fillvalue=best_parent):
-            new.append(Unit.mutated(Unit.child_from_crossed(parents), mutator))
-            if len(new) >= n: break
-    yield from new
+            yield Unit.mutated(Unit.child_from_crossed(parents), mutator)
+            remain_to_yield -= 1
+            if not remain_to_yield: break
