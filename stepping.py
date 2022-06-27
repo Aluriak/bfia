@@ -38,7 +38,7 @@ def default_functions() -> tuple:
 
 
 def step(pop, case, pop_size:int, score:callable,
-         select:callable, reproduce:callable, mutate:callable,
+         select:callable, reproduce:callable, cross: callable, mutate:callable,
          step_number:int=None, callback_stats:callable=(lambda sp, mx, mn: None)) -> 'pop':
     """Compute one step, return the new population
 
@@ -52,6 +52,7 @@ def step(pop, case, pop_size:int, score:callable,
     score -- function used for scoring
     select -- function used for selection
     reproduce -- function used for reproduction
+    cross -- function used for crossing
     mutate -- function used for mutation
     step_number -- number of the current step ; only for cosmetic/logging purpose
     callback_stats -- a callback that will get (scored_pop, max, min)
@@ -60,6 +61,7 @@ def step(pop, case, pop_size:int, score:callable,
     assert callable(score)
     assert callable(select)
     assert callable(reproduce)
+    assert callable(cross)
     assert callable(mutate)
     assert callable(callback_stats)
     assert isinstance(pop_size, int)
@@ -92,8 +94,9 @@ def step(pop, case, pop_size:int, score:callable,
         winners = tuple(unit for unit, score in scored_pop.items() if score == best_result.score)
 
     selected = dict(select(scored_pop))
+    assert len(selected) > 1, selected
     assert selected, "at least one individual must be selected"
-    final = tuple(reproduce(selected, pop_size, mutator=mutate))
+    final = tuple(reproduce(selected, pop_size, cross, mutator=mutate))
     assert len(final) == pop_size, "new pop must have a size of {} ({}), not {}".format(pop_size, type(pop_size), len(final))
     return StepResult(final, scored_pop, winners)
 

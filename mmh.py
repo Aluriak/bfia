@@ -53,6 +53,7 @@ class MMH:
             'select': self.config.select,
             'mutate': self.config.mutate,
             'reproduce': self.config.reproduce,
+            'cross': self.config.cross,
             # 'create': self.config.create,
         }
 

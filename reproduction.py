@@ -29,8 +29,8 @@ def default_functions() -> tuple:
     return named_functions.as_tuple()
 
 
-def pairing_with_replacement(scored_parents:iter, n:int, *, parthenogenesis:float=0,
-                             mutator:callable=mutator.all_mutators(),
+def pairing_with_replacement(scored_parents:iter, n:int, crossing_func:callable, *,
+                             parthenogenesis:float=0, mutator:callable=mutator.all_mutators(),
                              keep_parents:bool=True, parent_score_weight: bool = True) -> iter:
     """Yield population of size n, generated from given population,
     by repeateadly choose two parent randomly and compute their child.
@@ -43,6 +43,7 @@ def pairing_with_replacement(scored_parents:iter, n:int, *, parthenogenesis:floa
     keep_parents -- set to False to get only the childs and discard parents
                     from next generation.
     parent_score_weight -- whether or not the score of a parent have an impact of the likelihood of being chosen
+    crossing_by_chromosomes -- whether to use the chromosome-based crossing, or the syntaxic one
 
     """
     assert scored_parents, "given parent population can't be empty"
@@ -54,17 +55,18 @@ def pairing_with_replacement(scored_parents:iter, n:int, *, parthenogenesis:floa
     while len(new) < n:
         # pick two parents
         if parent_score_weight:
-            weights = [v if v > 0 else 1 for v in scored_parents.values()]  # replace null and negative score by the minimal acceptable weight of 1
+            weights = [v.score if v.score > 0 else 1 for v in scored_parents.values()]  # replace null and negative score by the minimal acceptable weight of 1
+            print(scored_parents, weights)
             parents = choices(scored_parents.keys(), weights=weights, k=2, replacement=False)
         else:
             parents = choices(scored_parents.keys(), k=2, replacement=False)
-        new.append(Unit.mutated(Unit.child_from_crossed(parents), mutator))
+        new.append(Unit.mutated(Unit.child_from_crossed(parents, crossing_func), mutator))
         if len(new) >= n: break
     yield from new
 
 
-def pairing_all_parents(scored_parents:iter, n:int, *, parthenogenesis:float=0,
-                        mutator:callable=mutator.all_mutators(),
+def pairing_all_parents(scored_parents:iter, n:int, crossing_func:callable, *,
+                        parthenogenesis:float=0, mutator:callable=mutator.all_mutators(),
                         keep_parents:bool=True) -> iter:
     """Yield population of size n, generated from given population
     by pairing parents by two.
@@ -76,6 +78,7 @@ def pairing_all_parents(scored_parents:iter, n:int, *, parthenogenesis:float=0,
     mutator -- a mutator function. Default is the full set of available mutations.
     keep_parents -- set to False to get only the childs and discard parents
                     from next generation.
+    crossing_by_chromosomes -- whether to use the chromosome-based crossing, or the syntaxic one
 
     """
     pop = list(scored_parents)
@@ -90,6 +93,6 @@ def pairing_all_parents(scored_parents:iter, n:int, *, parthenogenesis:float=0,
         random.shuffle(pop)
         chunks = [iter(pop)] * 2
         for parents in itertools.zip_longest(*chunks, fillvalue=filler):
-            new.append(Unit.mutated(Unit.child_from_crossed(parents), mutator))
+            new.append(Unit.mutated(Unit.child_from_crossed(parents, crossing_func), mutator))
             if len(new) >= n: break
     yield from new

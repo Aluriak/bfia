@@ -61,15 +61,13 @@ class Unit:
         )
 
     @staticmethod
-    def child_from_crossed(parents:iter, chrom_size:int=None):
+    def child_from_crossed(parents:iter, crossing_func: callable, chrom_size:int=None):
         """Return a child produced from parents"""
-        assert len(parents) == 2
-        try:
-            cross = random.randrange(1, min((len(p.source) for p in parents)) - 1)
-        except ValueError:
-            cross = 0
+        source = crossing_func(parents)
+        if not source:
+            raise ValueError(f"Crossing function {crossing_func} returned an empty source for given parents {parents} of sources: {' and '.join(p.source for p in parents)}.")
         return Unit(
-            bf_source=parents[0].source[:cross] + parents[1].source[cross:],
+            bf_source=crossing_func(parents),
             chrom_size=chrom_size or random.choice([parent.chrom_size for parent in parents])
         )
 

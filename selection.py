@@ -13,7 +13,7 @@ Input of these functions are the following:
 
 As output, selection functions return an iterable of (Unit, score),
 taken from the initial population.
-The size of this output set depends of the selection function.
+The size of this output set depends of the selection function, but always has at least 2 elements.
 No selection function should returns two times the same units in a single call.
 
 """
@@ -36,7 +36,6 @@ def named_functions() -> dict:
     """Return selection functions"""
     return {
         **utils.make_named_functions('RS', ranking_slices, {'pattern': {'D': DEFAULT_SELECTION, '2': ((0, 30), (45, 55)), 'B1': ((0, 50),)}}),
-        **utils.make_named_functions('DL', decreasing_likelihood, {'on_rank': 'R'}),
         **utils.make_named_functions('PL', poolling, {'pool_size': {'S': 2, 'M': 10, 'L': 20, 'D': DEFAULT_POOL_SIZE}, 'selection_size': {'1': 0.1, 'D': DEFAULT_SELECTION_SIZE, '6': 0.6}}),
     }
 
@@ -70,38 +69,10 @@ def ranking_slices(scored_units:dict({'indiv': 'score'}),
         while not (0. <= stop <= 1.): stop /= 10
         for unt, percent in by_percent:
             if start <= percent <= stop:
-                returned.add((unt, scored_units[unt].score))
+                returned.add((unt, scored_units[unt]))
+    while len(returned) < 2:
+        returned.add(random.choice(list(scored_units.items())))
     return frozenset(returned)
-
-
-def decreasing_likelihood(scored_units:dict({'indiv': 'score'}),
-                          on_rank:bool=True,
-                          prob_function:callable=lambda x, mn, mx: (x - mn) / ((mx - mn)*1.01)) -> iter:
-    """Yield selected individuals from given {unit: score}.
-
-    Individuals are randomly kept or not, with a keeping likelihood
-    function to their score. The higher score, the greater
-    chances an individual have to be selected.
-
-    on_rank -- use ranks instead of score to determine selection likelihood
-    prob_function -- the map (score, min_score, max_score) -> selection likelihood
-
-    By default, prob_function is a function that theorically allow
-    the best units to not be selected.
-
-    """
-    if on_rank:
-        min_score, max_score = len(scored_units), 1
-    else:  # use score
-        min_score, max_score = min(scored_units.values()).score, max(scored_units.values()).score
-    one_unit_yielded = False  # ensure that at least one unit is yield
-    # TODO: manage case where all probabilities are zero
-    while not one_unit_yielded:
-        for rank, (unit, score) in enumerate(scored_units.items(), start=1):
-            prob = prob_function(rank if on_rank else score.score, min_score, max_score)
-            if random.random() < prob:
-                yield (unit, score.score)
-                one_unit_yielded = True
 
 
 def poolling(scored_units:dict({'indiv': 'score'}),

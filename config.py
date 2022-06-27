@@ -11,6 +11,7 @@ from collections import namedtuple
 import utils
 import mutator
 import scoring
+import crossing
 import stepping
 import creation
 import selection
@@ -34,17 +35,19 @@ class Configuration:
     """
     def __init__(self, score:callable=None, select:callable=None,
                  mutate:callable=None, reproduce:callable=None,
-                 create:callable=None, step:callable=None):
+                 cross: callable=None, create:callable=None, step:callable=None):
         score = score or scoring.default_functions()
         select = select or selection.default_functions()
         mutate = mutate or mutator.default_functions()
         reproduce = reproduce or reproduction.default_functions()
+        cross = cross or crossing.default_functions()
         create = create or creation.default_functions()
         step = step or stepping.default_functions()
         self._score = (score,) if callable(score) else tuple(score)
         self._select = (select,) if callable(select) else tuple(select)
         self._mutate = (mutate,) if callable(mutate) else tuple(mutate)
         self._reproduce = (reproduce,) if callable(reproduce) else tuple(reproduce)
+        self._cross = (cross,) if callable(cross) else tuple(cross)
         self._create = (create,) if callable(create) else tuple(create)
         self._step = (step,) if callable(step) else tuple(step)
 
@@ -64,7 +67,7 @@ class Configuration:
         """
         return Configuration(score=self.score, select=self.select,
                              mutate=self.mutate, reproduce=self.reproduce,
-                             create=self.create, step=self.step)
+                             cross=self.cross, create=self.create, step=self.step)
 
     @property
     def score(self) -> callable:
@@ -83,6 +86,10 @@ class Configuration:
         return random.choice(self._reproduce)
 
     @property
+    def cross(self) -> callable:
+        return random.choice(self._cross)
+
+    @property
     def create(self) -> callable:
         return random.choice(self._create)
 
@@ -96,6 +103,7 @@ class Configuration:
                                     (self._select, selection, 'SELECT'),
                                     (self._mutate, mutator, 'MUTATE'),
                                     (self._reproduce, reproduction, 'REPRODUCE'),
+                                    (self._cross, crossing, 'CROSS'),
                                     (self._create, creation, 'CREATE'),
                                     (self._step, stepping, 'STEP')):
             out += '{}:\n'.format(name)
@@ -120,6 +128,7 @@ class Configuration:
                                      ('select', select, selection),
                                      ('mutate', mutate, mutator),
                                      ('reproduce', reproduce, reproduction),
+                                     ('cross', cross, crossing),
                                      ('create', create, creation),
                                      ('step', step, stepping)):
             if isinstance(value, str):  # it's a code name

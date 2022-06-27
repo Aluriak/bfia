@@ -117,5 +117,6 @@ def choices(population: iter, weights = None, k: int = 1, replacement: bool = Fa
     if weights:
         total_weight = sum(weights)
         weights = [w/total_weight for w in weights]
+    assert len(population) >= k, (len(population), k)
     return np_rng.choice(list(population), size=k, replace=replacement, p=weights)
 
