@@ -11,7 +11,7 @@ Input of these functions are the following:
     scored_pop -- a map {unit: score}, giving its score for each unit in population
     other -- supplementary parameters that depends of the selection method
 
-As output, selection functions return an iterable of units,
+As output, selection functions return an iterable of (Unit, score),
 taken from the initial population.
 The size of this output set depends of the selection function.
 No selection function should returns two times the same units in a single call.
@@ -22,6 +22,7 @@ No selection function should returns two times the same units in a single call.
 import random
 from functools import partial
 
+import utils
 from utils import reversed_dict, named_functions_interface_decorator
 
 
@@ -34,26 +35,14 @@ DEFAULT_SELECTION_SIZE = 0.4
 def named_functions() -> dict:
     """Return selection functions"""
     return {
-        'RSD':  partial(ranking_slices, pattern=DEFAULT_SELECTION),
-        'RS2':  partial(ranking_slices, pattern=((0, 30), (45, 55))),
-        'RSB1': partial(ranking_slices, pattern=((0, 50),)),
-        'PLDD': poolling,
-        'PL1D': partial(poolling, pool_size=1, selection_size=DEFAULT_SELECTION_SIZE),
-        'DL': decreasing_likelihood,
-        'DLR': partial(decreasing_likelihood, on_rank=True),
+        **utils.make_named_functions('RS', ranking_slices, {'pattern': {'D': DEFAULT_SELECTION, '2': ((0, 30), (45, 55)), 'B1': ((0, 50),)}}),
+        **utils.make_named_functions('DL', decreasing_likelihood, {'on_rank': 'R'}),
+        **utils.make_named_functions('PL', poolling, {'pool_size': {'S': 2, 'M': 10, 'L': 20, 'D': DEFAULT_POOL_SIZE}, 'selection_size': {'1': 0.1, 'D': DEFAULT_SELECTION_SIZE, '6': 0.6}}),
     }
 
 def default_functions() -> tuple:
     """Return default selection functions"""
-    return named_functions.as_tuple() + anonymous_functions()
-
-def anonymous_functions() -> tuple:
-    """Return selection functions that have no name"""
-    return (
-        partial(poolling, pool_size=10, selection_size=0.1),
-        partial(poolling, pool_size=1, selection_size=0.1),
-        partial(poolling, pool_size=20, selection_size=0.6),
-    )
+    return named_functions.as_tuple()
 
 
 def ranking_slices(scored_units:dict({'indiv': 'score'}),
@@ -81,7 +70,7 @@ def ranking_slices(scored_units:dict({'indiv': 'score'}),
         while not (0. <= stop <= 1.): stop /= 10
         for unt, percent in by_percent:
             if start <= percent <= stop:
-                returned.add(unt)
+                returned.add((unt, scored_units[unt].score))
     return frozenset(returned)
 
 
@@ -104,14 +93,14 @@ def decreasing_likelihood(scored_units:dict({'indiv': 'score'}),
     if on_rank:
         min_score, max_score = len(scored_units), 1
     else:  # use score
-        min_score, max_score = min(scored_units.values()), max(scored_units.values())
+        min_score, max_score = min(scored_units.values()).score, max(scored_units.values()).score
     one_unit_yielded = False  # ensure that at least one unit is yield
     # TODO: manage case where all probabilities are zero
     while not one_unit_yielded:
         for rank, (unit, score) in enumerate(scored_units.items(), start=1):
-            prob = prob_function(rank if on_rank else score, min_score, max_score)
+            prob = prob_function(rank if on_rank else score.score, min_score, max_score)
             if random.random() < prob:
-                yield unit
+                yield (unit, score.score)
                 one_unit_yielded = True
 
 
@@ -145,21 +134,14 @@ def poolling(scored_units:dict({'indiv': 'score'}),
         #  this enforce that units will always be treated equally.
         random.shuffle(units)
         units_per_score[score] = iter(units)
-    scores = tuple(sorted(tuple(units_per_score.keys()), reverse=True))
+    scores = tuple(sorted(tuple(units_per_score.keys()), reverse=True))  # higher score first
 
     nb_yield = 0
     while nb_yield < selection_size:
-        empty_scores = set()  # scores associated with empty generator of units
         for score in scores:
-            for _ in range(pool_size):
-                try:
-                    yield next(units_per_score[score])
-                except StopIteration:
-                    # there is no more unit at this score.
-                    empty_scores.add(score)
-                else:
-                    nb_yield += 1
-                    if nb_yield >= selection_size:
-                        return  # selection size is reached
-        # ignore emptyied scores
-        scores = tuple(score for score in scores if score not in empty_scores)
+            pool = units_per_score[score]
+            for unit, _ in zip(pool, range(pool_size)):
+                yield unit, score.score
+                nb_yield += 1
+                if nb_yield >= selection_size:
+                    return  # selection size is reached
