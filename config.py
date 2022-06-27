@@ -57,7 +57,9 @@ class Configuration:
         get the same GA implementation for multiple iterations or simulations.
 
         Note that functions themselves are not modified ; for instance the
-        mutate method will not be fixed to a specific mutation 
+        mutate method will not be fixed to a specific mutation, as the mutate
+        methods sent to the Configuration object usually are functions calling
+        randomly one among many mutators.
 
         """
         return Configuration(score=self.score, select=self.select,

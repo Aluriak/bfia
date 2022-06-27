@@ -120,9 +120,8 @@ def poolling(scored_units:dict({'indiv': 'score'}),
              selection_size:int or float=DEFAULT_SELECTION_SIZE) -> iter:
     """Yield selected individuals from given {unit: score}.
 
-    Seek for groups of pool_size units having the same score,
-    beginning by the highest score, until selection_size units have been
-    choosed.
+    Seek for groups of units having the same score,
+    beginning by the highest score, and randomly select pool_size units of that pool.
 
     pool_size -- number of units of the same score to get
     selection_size -- final number of unit to return
