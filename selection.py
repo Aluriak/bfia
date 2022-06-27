@@ -112,7 +112,7 @@ def poolling(scored_units:dict({'indiv': 'score'}),
         for score in scores:
             pool = units_per_score[score]
             for unit, _ in zip(pool, range(pool_size)):
-                yield unit, score.score
+                yield unit, score
                 nb_yield += 1
                 if nb_yield >= selection_size:
                     return  # selection size is reached

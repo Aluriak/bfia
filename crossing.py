@@ -57,7 +57,13 @@ def crossby_pivot(parents: [Unit]) -> str:
     """
     nb_pivot = len(parents) - 1
     smallest_source = min(len(p.source) for p in parents)
-    pivots = [0] + sorted(random.sample(range(1, smallest_source), k=nb_pivot))
+    if smallest_source < len(parents):
+        ok_parents = tuple(p for p in parents if len(p.source) > smallest_source)
+        if len(ok_parents) <= 1:  # if there is zero or one parent with a not-too-short source code, let's merge everything.
+            return ''.join(p.source for p in parents)
+        else:  # many parents are long
+            return crossby_pivot(ok_parents)
+    pivots = sorted(random.sample(range(0, smallest_source), k=nb_pivot)) + [-1]
     childparts = []
     prev_pivot = 0
     for parent, pivot in zip(parents, pivots):

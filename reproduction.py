@@ -56,7 +56,6 @@ def pairing_with_replacement(scored_parents:iter, n:int, crossing_func:callable,
         # pick two parents
         if parent_score_weight:
             weights = [v.score if v.score > 0 else 1 for v in scored_parents.values()]  # replace null and negative score by the minimal acceptable weight of 1
-            print(scored_parents, weights)
             parents = choices(scored_parents.keys(), weights=weights, k=2, replacement=False)
         else:
             parents = choices(scored_parents.keys(), k=2, replacement=False)
