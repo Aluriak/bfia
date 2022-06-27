@@ -6,6 +6,9 @@ import itertools
 import functools
 from collections import defaultdict
 
+from numpy.random import default_rng
+np_rng = default_rng()  # replace np.random ; see https://numpy.org/doc/stable/reference/random/index.html#random-quick-start
+
 
 def named_functions_interface_decorator(named_funcs:callable):
     """Allow a named_functions function to expose a more complete API"""
@@ -42,6 +45,44 @@ def pretty_func(func:callable) -> str:
     return func.__name__
 
 
+def make_named_functions(basecode: str, func: callable, kwargs: dict) -> dict:
+    """This is an helper for function modules, when there is multiple keyword args to provide.
+
+    Example: calling make_functions('PR', pairing_with_replacement, {'keep_parents': 'P', 'parent_score_weight': 'W'})
+    will provide the four combination of calls of function pairing_with_replacement, with given kwargs as boolean values.
+    Hence, we will get something like:
+
+        {
+            'PRW': partial(pairing_with_replacement, keep_parents=False, parent_score_weight=True),
+            'PRPW':  partial(pairing_with_replacement, keep_parents=True, parent_score_weight=True),
+            'PR': partial(pairing_with_replacement, keep_parents=False, parent_score_weight=False),
+            'PRP': partial(pairing_with_replacement, keep_parents=True, parent_score_weight=False),
+        }
+
+    Kwargs values may be strings, or dict of strings to value.
+    Internally, a string is converted to its dict equivalent,
+    e.g. 'P' become {'P': True, '': False}. Hence the argument will have two possible values,
+    True and False, with True associated to given string, and False to empty string.
+
+    """
+    for kwarg, val in tuple(kwargs.items()):
+        if val == '':
+            raise ValueError(f"Cannot handle a value of empty string (for kwarg {kwarg}).")
+        if isinstance(val, str):
+            kwargs[kwarg] = {val: True, '': False}
+    out = {}
+
+    for args in itertools.product(*map(list, kwargs.values())):
+        kw = {kwarg: kwargs[kwarg][val] for kwarg, val in zip(kwargs, args)}
+        code = basecode + ''.join(map(str, args))
+        partialized_func = functools.partial(func, **kw)
+        if code in out:
+            raise ValueError(f"cannot add '{pretty_func(partialized_func)}' as {code}, since it is already associated with '{pretty_func(out[code])}'")
+        out[code] = partialized_func
+
+    return out
+
+
 def key_of(value, mapping:dict, default=None):
     """Return the first key found having the given value"""
     keys = (key for key, mapped in mapping.items() if value is mapped)
@@ -68,3 +109,13 @@ def grouper(iterable, n, fillvalue=None):
     # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx"
     args = [iter(iterable)] * n
     yield from itertools.zip_longest(*args, fillvalue=fillvalue)
+
+
+def choices(population: iter, weights = None, k: int = 1, replacement: bool = False) -> list:
+    """Like random.choices, but without replacement, unless asked to"""
+    # turn weights from int to float
+    if weights:
+        total_weight = sum(weights)
+        weights = [w/total_weight for w in weights]
+    return np_rng.choice(list(population), size=k, replace=replacement, p=weights)
+
