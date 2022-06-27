@@ -34,6 +34,15 @@ def output_interleaving(unit):
         io_transposition(unit)
 
 
+def output_separation(unit):
+    if '..' in unit.source:
+        chars_pos = unit.source.find('..')
+        src = unit.source
+        unit.source = src[:chars_pos] + choice('+-<>') + src[chars_pos:]
+    else:
+        io_transposition(unit)
+
+
 def io_change(unit):
     iochars = ['.', ',']
     shuffle(iochars)
