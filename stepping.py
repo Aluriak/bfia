@@ -77,10 +77,12 @@ def step(pop, case, pop_size:int, score:callable,
 
     best_unit = max(pop, key=lambda u: scored_pop[u].score)
     best_result = scored_pop[best_unit]
+    worst_unit = min(pop, key=lambda u: scored_pop[u].score)
     print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
 
     # call the user defined data handling
-    callback_stats(scored_pop, best_result, min(scored_pop.values()))
+    diversity = len(set(u.source for u in scored_pop)) / len(scored_pop)
+    callback_stats(len(scored_pop), best_result.score, scored_pop[worst_unit].score, diversity)
 
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
@@ -90,7 +92,7 @@ def step(pop, case, pop_size:int, score:callable,
 
     winners = ()
     if best_result.found == best_result.expected:
-        winners = tuple(unit for unit, score in scored_pop.items() if score == best_result.score)
+        winners = tuple(unit for unit, score in scored_pop.items() if score.score == best_result.score)
 
     selected = dict(select(scored_pop))
     assert len(selected) > 1, selected

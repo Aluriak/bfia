@@ -58,7 +58,7 @@ def run_simple_cases(saver:Saver):
                 # step_number=current_step
             # )
             # saver.save([current_step, max(s.score for s in scored_pop.values())])
-        mmh = MMH(case, pop_size=POP_SIZE, config=config)
+        mmh = MMH(case, pop_size=POP_SIZE, config=config, data_handler=saver.save)
         for pops in mmh.corun():
             assert len(pops) == 1  # currently multipop is not implemented
             pop = pops[0]
@@ -119,20 +119,17 @@ def run_test_motif(saver:Saver):
 def main(saver:Saver=None):
     methods = (
         # ((), run_interpreter_testing),
-        (('step', 'max_score'), run_simple_cases),
+        run_simple_cases,
         # (('score', 'step'), run_test_motif),
     )
-    for fields, method in methods:
-        with Saver(fields=fields) as saver:
+    for method in methods:
+        with Saver() as saver:
             try:
                 method(saver)
             except KeyboardInterrupt:
                 pass
-        if fields:
-            saver.commit()
-        print('STOPPED')
-        if fields:
-            saver.plot()
+        saver.commit()
+        saver.plot()
 
 
 if __name__ == "__main__":

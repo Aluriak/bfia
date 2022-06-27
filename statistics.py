@@ -14,20 +14,25 @@ import pandas as pd
 
 import commons
 
+def plotter(df):
+    ax = df.plot(x='step', y=['max_score', 'min_score'])
+    df.plot(x='step', y='diversity',secondary_y=True, ax=ax)
+
 
 class Saver:
     """Save data about a simulation.
 
     >>> s = Saver(('a', 'b', 'c'), defaults=[0])
     >>> s.save(3, 4, 5)  # a = 3, b = 4 and c = 5 for the first row
-    >>> s.save(0, 5)     # a = 1, b = 5 and c = 0 (default value) for the second row
+    >>> s.save(1, 5)     # a = 1, b = 5 and c = 0 (default value) for the second row
 
     """
     FILE_TEMPLATE = 'data_{}.csv'
 
-    def __init__(self, fields:iter=['step', 'max_score'], defaults:iter=None,
-                 fileid:str='', datadir:str=commons.DATA_DIR,
-                 plotter:callable=lambda df: df.plot(x=['step'])):
+    def __init__(self, fields:iter=['popsize', 'max_score', 'min_score', 'diversity'], defaults:iter=None,
+                 fileid:str='', datadir:str=commons.DATA_DIR, index: str = 'step',
+                 plotter:callable=plotter):
+
         """
 
         fields -- column name, in order expected by later save() calls.
@@ -40,7 +45,7 @@ class Saver:
         assert callable(plotter)
         self.plotter = plotter
         self.fileid = str(fileid)
-        self.fields = tuple(str(_) for _ in fields)
+        self.fields = (index,) + tuple(str(_) for _ in fields)
         self.datadir = str(datadir)
         self.defaults = tuple(defaults) if defaults else ()
         self.commit(first_time=True)
@@ -53,13 +58,13 @@ class Saver:
     def __exit__(self, *args):
         self.commit()
 
-    def save(self, fieldvalues:iter):
+    def save(self, *fieldvalues):
         """Save given values for registered fields in output file.
         If necessary, complete given values with defaults
 
         """
         self.nb_row += 1
-        fieldvalues = list(fieldvalues)
+        fieldvalues = [self.nb_row] + list(fieldvalues)
         if len(fieldvalues) < len(self.fields):
             fieldvalues += list(self.defaults)[len(self.fields) - len(fieldvalues):]
         self.writer.writerow(fieldvalues)

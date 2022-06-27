@@ -37,7 +37,7 @@ class MMH:
         self.change_config_at = lambda sn: sn % 5 == 0
         self.prompt_at = lambda sn: sn % 5 == 0
         self.data_handler = data_handler
-        self.found_solutions = {}  # set of sources that succeed
+        self.found_solutions = set()  # set of sources that succeed
 
 
     def _init_config(self):
