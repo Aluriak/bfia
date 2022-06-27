@@ -34,8 +34,10 @@ class MMH:
         self._init_config()
         self.populations = [tuple(self.config.create(self.pop_size)) for _ in range(pop_number)]
         self.current_step = 1
-        self.change_config_at = lambda sn: sn % 50 == 0
+        self.change_config_at = lambda sn: sn % 5 == 0
+        self.prompt_at = lambda sn: sn % 5 == 0
         self.data_handler = data_handler
+        self.found_solutions = {}  # set of sources that succeed
 
 
     def _init_config(self):
@@ -90,15 +92,18 @@ class MMH:
         new_pops = []
         for pop in self.populations:
             len_pop = len(pop)
-            new_pop, scored_old_pop = self.algogen_call(pop)
+            new_pop, scored_old_pop, winners = self.algogen_call(pop)
             assert len(pop) == len(new_pop)
             assert new_pop != pop
             new_pops.append(new_pop)
+            self.found_solutions |= {winner.source for winner in winners}
         self.populations = tuple(new_pops)
 
         self.current_step += 1
         if self.change_config_at(self.current_step):
             self._init_config()
+        if self.prompt_at(self.current_step):
+            input('?')
 
         return self.populations
 
