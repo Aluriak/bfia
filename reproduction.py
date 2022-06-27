@@ -87,6 +87,7 @@ def pairing_all_parents(scored_parents:iter, n:int, crossing_func:callable, *,
         print(f"same_with_childs: population of {len(new)} parents can't reproduce, "
               f"because final population already have {n} individuals")
     assert len(new) <= n
+    remain_to_yield = n
     filler = random.choice(pop)
     while len(new) < n:
         random.shuffle(pop)

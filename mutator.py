@@ -2,7 +2,6 @@
 
 """
 
-
 import random
 import itertools
 import functools

@@ -152,6 +152,19 @@ class Configuration:
         )
 
     @staticmethod
+    def recipe_using_standard_methods():
+        """Reproduction of the typical genetic algorithm implementation.
+
+        """
+        return Configuration(
+            score=scoring.named_functions('IOCBM'),
+            select=selection.named_functions('RSD'),
+            mutate=mutator.all_mutators(),
+            reproduce=reproduction.named_functions('PRPW'),
+            create=creation.all_methods_equally,
+        )
+
+    @staticmethod
     def recipe_best_solution_so_far():
         """Reproduction of the best known configuration.
 

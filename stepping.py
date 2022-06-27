@@ -39,7 +39,7 @@ def default_functions() -> tuple:
 
 def step(pop, case, pop_size:int, score:callable,
          select:callable, reproduce:callable, cross: callable, mutate:callable,
-         step_number:int=None, callback_stats:callable=(lambda sp, mx, mn: None)) -> 'pop':
+         step_number:int=None, callback_stats:callable=(lambda *args: None)) -> 'pop':
     """Compute one step, return the new population
 
     This implementation first select the population, then produce
@@ -55,7 +55,7 @@ def step(pop, case, pop_size:int, score:callable,
     cross -- function used for crossing
     mutate -- function used for mutation
     step_number -- number of the current step ; only for cosmetic/logging purpose
-    callback_stats -- a callback that will get (scored_pop, max, min)
+    callback_stats -- a callback that will get (step, scored_pop, max, min)
 
     """
     assert callable(score)

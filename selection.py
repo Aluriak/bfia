@@ -30,6 +30,8 @@ DEFAULT_SELECTION = ((0, 40), )
 DEFAULT_POOL_SIZE = 10
 DEFAULT_SELECTION_SIZE = 0.4
 
+DEFAULT_PROB_FUNCTION = lambda x, mn, mx: (x - (mn-1)) / ((mx - (mn-1))+1)
+
 
 @named_functions_interface_decorator
 def named_functions() -> dict:

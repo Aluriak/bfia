@@ -24,7 +24,15 @@ class MMH:
         pop_size -- size of the population (to remove/change when multipop is handled)
         config -- the Configuration instance describing the metaheuristic
         pop_number -- number of populations to spawn at start
-        data_handler -- a callback called by stepping function with scored pop and max/min scores
+        data_handler -- a callback called at each step with multiple parameters
+
+        data_handler should expects:
+        - current step number
+        - map unit to score
+        - best score
+        - worst score
+        - currently used config
+        - identifier of currently used config
 
         """
         assert config
@@ -115,7 +123,7 @@ class MMH:
             pop, self.case, self.pop_size,
             **self.genalg_functions,
             step_number=self.current_step,
-            **{'callback_stats': self.data_handler} if self.data_handler else {}
+            callback_stats=self.data_handler,
         )
 
 

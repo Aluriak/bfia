@@ -5,6 +5,7 @@
 import ctypes
 import random
 import itertools
+from functools import partial
 from collections import namedtuple
 
 import interpreter
@@ -92,12 +93,12 @@ def io_comparison_with_bonus_and_size_malus(unit, test, interpreter=INTERPRETER,
 def compare_str_c(one, two) -> int:
     """Wrapper around C function implementing string comparison"""
     one, two = one.encode(), two.encode()
-    return c_func_compare_str(one, two, len(one), len(two))
+    return c_func_compare_str(one, two, len(one), len(two), UINT8_MAX, 1, 0)
 
-def compare_str_py(one, two) -> int:
+def compare_str_py(one, two, length_penalty:int=UINT8_MAX) -> int:
     """Implementation of the string comparator in python"""
     one, two = one.encode(), two.encode()
-    return sum(UINT8_MAX if None in (a, b) else abs(a - b)
+    return sum(length_penalty if None in (a, b) else abs(a - b)
                for a, b in itertools.zip_longest(one, two))
 
 
