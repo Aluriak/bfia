@@ -17,6 +17,9 @@
 // #define LOG_TOO_MUCH_OUTPUT
 // #define LOG_TOO_MUCH_INSTRUCTION
 
+// Activation of language extensions
+#define EXT_SET_ZERO  // Allow the use of 0 to replace [-]
+
 
 void interpret_bf(
         char* source_code, char* input,

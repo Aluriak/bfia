@@ -19,6 +19,8 @@ def test_basic_ops(interpret):
 def test_basic_loop(interpret):
     for x in range(1, 127):
         assert ord(interpret(',[-]+.', input=chr(x))) == 1
+        # equivalent using the SET_ZERO language extension
+        assert ord(interpret(',0+.', input=chr(x))) == 1
 
 
 def test_basic_move(interpret):

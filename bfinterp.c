@@ -146,6 +146,12 @@ void interpret_bf(char* source_code, char* input, char* output, const uint64_t o
                     return;
                 }
                 break;
+#ifdef EXT_SET_ZERO
+            case '0':  // replaces [-]
+                *p_mem = 0;
+                ++p_src;
+                break;
+#endif
             case '[':
                 LOGOK
                 if(!*p_mem) {

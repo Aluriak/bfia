@@ -1,5 +1,6 @@
 
 
+import re
 import ctypes
 from functools import partial, lru_cache
 
@@ -8,6 +9,9 @@ BFIA_C_LIB = './bfinterp.so'
 BF_STATEMENTS = '<>+-[],.'
 CACHE_SIZE = 2**8
 
+ZERO_INSTRUCTION = re.compile(r"\[-+]")
+assert re.sub(ZERO_INSTRUCTION, '0', '[-----][-][]') == '00[]', re.sub(ZERO_INSTRUCTION, '0', '[-----][-][]')
+
 
 def load_interpreter():
     ret = ctypes.cdll.LoadLibrary(BFIA_C_LIB)
@@ -15,8 +19,17 @@ def load_interpreter():
     return ret
 
 
+def simplified_source_code(source: str) -> str:
+    source = source.replace('[]', '')
+    source = re.sub(ZERO_INSTRUCTION, '0', source)
+    return source
+
+
 def interprete(source:str, input:str="", *, interpreter:ctypes.cdll=None,
                max_output_size:int=2**16) -> str:
+    # remove weird things in source
+    source = simplified_source_code(source)
+
     output = ('\0' * max_output_size).encode()
     # print(source)
     interpreter.interpret_bf(source.encode(), input.encode(), output, max_output_size)
