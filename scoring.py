@@ -20,6 +20,7 @@ c_func_compare_str = ctypes.cdll.LoadLibrary(COMPARE_STR_C_LIB).distance
 c_func_compare_str.restype = ctypes.c_uint64  # specify output type
 
 RunResult = namedtuple('RunResult', 'score expected found')
+SCORE_BASE = 10_000
 
 UINT8_MAX = 255  # comes from C stdint.h
 
@@ -34,7 +35,8 @@ def named_functions() -> dict:
     return {
         'IOC': io_comparison,
         'IOCB': io_comparison_with_bonus,
-        'IOCBM': io_comparison_with_bonusmalus,
+        'IOCM': io_comparison_with_size_malus,
+        'IOCBM': io_comparison_with_bonus_and_size_malus,
     }
 
 def default_functions() -> tuple:
@@ -46,24 +48,23 @@ def anonymous_functions() -> tuple:
     return ()
 
 
-def io_comparison_with_bonus(unit, test, interpreter=INTERPRETER, bonus=0.1) -> float:
-    """Like io_comparison, but giving bonus% of bonus of score if found the
-    expected result.
+def io_comparison_with_bonus(unit, test, interpreter=INTERPRETER, bonus=SCORE_BASE) -> float:
+    """Like io_comparison, but giving a bonus of score if found the
+    expected result, so that finding the correct results ensure a large.
 
     """
     score, expected, found = io_comparison(unit, test, interpreter)
-    score *= 1 + (bonus if bonus and found == expected else 0)
-    return RunResult(score, expected, found)
+    if bonus and found == expected:
+        score += bonus  # scores of successful units belong to another scoring level.
+    return RunResult(int(score), expected, found)
 
 
-def io_comparison_with_bonusmalus(unit, test, interpreter=INTERPRETER,
-                                  bonus=0.1, malus=1) -> float:
-    """Like io_comparison, but giving bonus% of bonus of score if found the
-    expected result, and a malus of malus*source code size.
+def io_comparison_with_size_malus(unit, test, interpreter=INTERPRETER, malus=1) -> float:
+    """Like io_comparison, but giving a malus of malus*source code size.
 
     """
-    score, expected, found = io_comparison_with_bonus(unit, test, interpreter, bonus)
-    score -= len(unit.source) * (0 if found == expected else malus)
+    score, expected, found = io_comparison(unit, test, interpreter)
+    score -= len(unit.source) * malus
     return RunResult(score, expected, found)
 
 
@@ -73,9 +74,19 @@ def io_comparison(unit, test, interpreter=INTERPRETER) -> float:
     found = interpreter.inline(unit.source, stdin, max_output_size=MAX_OUT_SIZE)
     # print('UOGHDP:', interpreter.inline.cache_info())
     assert len(expected) < MAX_OUT_SIZE
-    SCORE_BASE = 10_000
     score = SCORE_BASE - compare_str(expected, found)
     return RunResult(score, expected, found)
+
+
+def io_comparison_with_bonus_and_size_malus(unit, test, interpreter=INTERPRETER, bonus=SCORE_BASE, malus=1) -> float:
+    """Like io_comparison, but giving a malus of malus*source code size, and a bonus for exact answers.
+
+    """
+    score, expected, found = io_comparison(unit, test, interpreter)
+    if bonus and found == expected:
+        score += bonus  # scores of successful units belong to another scoring level.
+    score -= len(unit.source) * malus
+    return RunResult(int(score), expected, found)
 
 
 def compare_str_c(one, two) -> int:
