@@ -21,7 +21,7 @@ MULTIPROC_TASK_PER_CHILD = 32
 # printing
 MAX_PRINTED_PROPS = 10
 
-StepResult = namedtuple('StepResult', 'pop, scored_old_pop')
+StepResult = namedtuple('StepResult', 'pop, scored_old_pop, winners')
 
 
 @named_functions_interface_decorator
@@ -34,11 +34,7 @@ def named_functions() -> dict:
 
 def default_functions() -> tuple:
     """Return default GA functions"""
-    return named_functions.as_tuple() + anonymous_functions()
-
-def anonymous_functions() -> tuple:
-    """Return GA functions that have no name"""
-    return ()
+    return named_functions.as_tuple()
 
 
 def step(pop, case, pop_size:int, score:callable,
@@ -91,11 +87,15 @@ def step(pop, case, pop_size:int, score:callable,
           ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
 
-    selected = tuple(select(scored_pop))
+    winners = ()
+    if best_result.found == best_result.expected:
+        winners = tuple(unit for unit, score in scored_pop.items() if score == best_result.score)
+
+    selected = dict(select(scored_pop))
     assert selected, "at least one individual must be selected"
     final = tuple(reproduce(selected, pop_size, mutator=mutate))
     assert len(final) == pop_size, "new pop must have a size of {} ({}), not {}".format(pop_size, type(pop_size), len(final))
-    return StepResult(final, scored_pop)
+    return StepResult(final, scored_pop, winners)
 
 
 def step_cross_first(pop, case, pop_size:int, score:callable,
@@ -137,8 +137,8 @@ def step_cross_first(pop, case, pop_size:int, score:callable,
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
     print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3))
-    print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
-          ('[SUCCESS]' if best_result.found == best_result.expected else ''))
+    print(f"OUTPUTS: \"{best_result.found}\"\t(expect {best_result.expected})",
+          ("[SUCCESS]" if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
     return StepResult(tuple(select(scored_pop)), scored_pop)
 
