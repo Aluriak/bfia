@@ -85,8 +85,7 @@ def step(pop, case, pop_size:int, score:callable,
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))
     print('OF', len(scored_pop), 'BEST:', round(best_result.score, 3))
-    print('OUTPUTS:', '"' + best_result.found + '"', '\t(expect {})'.format(best_result.expected),
-          ('[SUCCESS]' if best_result.found == best_result.expected else ''))
+    print(f"OUTPUTS: \"{best_result.found}\"\t(expect {best_result.expected})", ('[SUCCESS]' if best_result.found == best_result.expected else ''))
     print('SOURCE:', best_unit.source)
 
     winners = ()
