@@ -39,7 +39,7 @@ def default_functions() -> tuple:
 
 def step(pop, case, pop_size:int, score:callable,
          select:callable, reproduce:callable, cross: callable, mutate:callable,
-         step_number:int=None, callback_stats:callable=(lambda *args: None)) -> 'pop':
+         step_number:int=None, callback_stats:callable=(lambda **kwargs: None)) -> 'pop':
     """Compute one step, return the new population
 
     This implementation first select the population, then produce
@@ -81,8 +81,7 @@ def step(pop, case, pop_size:int, score:callable,
     print('SCORES:', sorted(tuple(set(round(r.score, 3) for u, r in scored_pop.items())), reverse=True))
 
     # call the user defined data handling
-    diversity = len(set(u.source for u in scored_pop)) / len(scored_pop)
-    callback_stats(len(scored_pop), best_result.score, scored_pop[worst_unit].score, diversity)
+    callback_stats(popsize=len(scored_pop), max_score=scored_pop[best_unit].score, min_score=scored_pop[worst_unit].score, diversity=len(set(u.source for u in scored_pop)) / len(scored_pop))
 
     proportions = Counter(r.score for r in scored_pop.values())
     print('PROPS :', proportions.most_common(MAX_PRINTED_PROPS))

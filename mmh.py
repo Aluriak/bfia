@@ -123,8 +123,12 @@ class MMH:
             pop, self.case, self.pop_size,
             **self.genalg_functions,
             step_number=self.current_step,
-            callback_stats=self.data_handler,
+            callback_stats=self.callback_stat_adaptator,
         )
+
+    def callback_stat_adaptator(self, **data):
+        self.data_handler(**data, **{'step': self.current_step, 'config': self.current_config})
+
 
 
     def create_populations(self, nb:int=1):
