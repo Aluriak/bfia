@@ -12,11 +12,16 @@ matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import pandas as pd
 
+import utils
 import commons
 
-def plotter(df):
+
+
+def plotter(df, config_change_steps: list[int]):
     ax = df.plot(x='step', y=['max_score', 'min_score'])
-    df.plot(x='step', y='diversity',secondary_y=True, ax=ax)
+    ax = df.plot(x='step', y='diversity',secondary_y=True, ax=ax)
+    for step in config_change_steps:
+        ax.axvline(x=step, color='red', linestyle='--', label='Config change')
 
 
 class Saver:
@@ -29,7 +34,7 @@ class Saver:
     """
     FILE_TEMPLATE = 'data_{}.csv'
 
-    def __init__(self, fields:iter=['popsize', 'max_score', 'min_score', 'diversity'], defaults:iter=None,
+    def __init__(self, fields:iter=commons.DEFAULT_DATASAVE_FIELDS, defaults:iter=None,
                  fileid:str='', datadir:str=commons.DATA_DIR, index: str = 'step',
                  plotter:callable=plotter):
 
@@ -51,6 +56,8 @@ class Saver:
         self.commit(first_time=True)
         self.writer.writerow(self.fields)
         self.nb_row = 0
+        self.last_config = None  # to detect configuration changes
+        self.config_change_steps = []  # steps at which config was changed
 
     def __enter__(self):
         return self
@@ -58,13 +65,19 @@ class Saver:
     def __exit__(self, *args):
         self.commit()
 
-    def save(self, *fieldvalues):
+    def save(self, **fieldvalues):
         """Save given values for registered fields in output file.
         If necessary, complete given values with defaults
 
         """
         self.nb_row += 1
-        fieldvalues = [self.nb_row] + list(fieldvalues)
+
+        current_config = fieldvalues['config']
+        if current_config != self.last_config:
+            self.last_config = current_config
+            self.config_change_steps.append(self.nb_row)
+
+        fieldvalues = [self.nb_row] + list(fieldvalues[f] for f in self.fields)
         if len(fieldvalues) < len(self.fields):
             fieldvalues += list(self.defaults)[len(self.fields) - len(fieldvalues):]
         self.writer.writerow(fieldvalues)
@@ -91,8 +104,9 @@ class Saver:
         if not filename:
             filename = max(Saver.data_files())
         df = pd.read_csv(filename)
-        print('DATAFRAME:', df)
-        plot = self.plotter(df)
+        print('DATAFRAME:')
+        print(df)
+        plot = self.plotter(df, self.config_change_steps)
         plt.show()
 
 
