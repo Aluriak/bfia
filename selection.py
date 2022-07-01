@@ -38,7 +38,8 @@ def named_functions() -> dict:
     """Return selection functions"""
     return {
         **utils.make_named_functions('RS', ranking_slices, {'pattern': {'D': DEFAULT_SELECTION, '2': ((0, 30), (45, 55)), 'B1': ((0, 50),)}}),
-        **utils.make_named_functions('PL', poolling, {'pool_size': {'S': 2, 'M': 10, 'L': 20, 'D': DEFAULT_POOL_SIZE}, 'selection_size': {'1': 0.1, 'D': DEFAULT_SELECTION_SIZE, '6': 0.6}}),
+        **utils.make_named_functions('PL', poolling, {'pool_size': {'S': 2, 'M': 10, 'L': 20, 'D': DEFAULT_POOL_SIZE}, 'selection_size': {'1': 0.1, 'D': DEFAULT_SELECTION_SIZE, '6': 0.6}, 'unique': 'U'}),
+        'PF': non_linear_likelihood,
     }
 
 def default_functions() -> tuple:
@@ -79,7 +80,7 @@ def ranking_slices(scored_units:dict({'indiv': 'score'}),
 
 def poolling(scored_units:dict({'indiv': 'score'}),
              pool_size:int=DEFAULT_POOL_SIZE,
-             selection_size:int or float=DEFAULT_SELECTION_SIZE) -> iter:
+             selection_size:int or float=DEFAULT_SELECTION_SIZE, unique: bool = False) -> iter:
     """Yield selected individuals from given {unit: score}.
 
     Seek for groups of units having the same score,
@@ -87,6 +88,7 @@ def poolling(scored_units:dict({'indiv': 'score'}),
 
     pool_size -- number of units of the same score to get
     selection_size -- final number of unit to return
+    unique -- try not yielding two units of same source code
 
     if selection_size is a float in [0;1], it is assumed to be a percentage
     of the input population size that should be select.
@@ -100,21 +102,66 @@ def poolling(scored_units:dict({'indiv': 'score'}),
         selection_size = max(1, int(round(selection_size * len(scored_units))))
     assert selection_size > 0, "selection_size can't be equal to {} ({})".format(selection_size, type(selection_size))
 
-    units_per_score = {}  # {score: iter(units)}
-    for score, units in reversed_dict(scored_units, cast=list).items():
+    if selection_size > len(scored_units):
+        raise ValueError(f"Can't select {selection_size} of {len(scored_units)} scored units.")
+
+    sorted_scores = sorted(list(set(scored_units.values())), reverse=True)
+
+    sorted_units = []  # list[list[unit]], where first list is unit of greater scores
+    units_per_score = reversed_dict(scored_units, cast=list)  # score -> list[unit]
+    for score in sorted_scores:
         # Note that the shuffle is necessary while two units of the same score
         #  could remain different. (by chromosome size for instance)
         #  this enforce that units will always be treated equally.
+        units = units_per_score[score]
         random.shuffle(units)
-        units_per_score[score] = iter(units)
-    scores = tuple(sorted(tuple(units_per_score.keys()), reverse=True))  # higher score first
+        sorted_units.append(list(units))
+
+    nb_yield = 0
+    for idx in range(len(sorted_units)):  # we will edit the list during loop
+        units = sorted_units[idx]
+        if unique:
+            to_send = set()
+            seen_sources = set()
+            for unit in list(units):
+                if unit.source not in seen_sources:
+                    seen_sources.add(unit.source)
+                    to_send.add(unit)
+
+        else:  # two selected units may have the same source code
+            to_send = set(units[:pool_size])  # take the first pool_size units in the pool
+
+        # now yield the data
+        yield from ((unit, scored_units[unit]) for unit in to_send)
+        nb_yield += len(to_send)
+        if nb_yield >= selection_size:
+            return  # selection size is reached
+        # edit the remaining data in list
+        sorted_units[idx] = [u for u in sorted_units[idx] if u not in to_send]
+
+    else:  # at this point, there is yield remaining, but no unit fitting the given parameters was found
+        assert nb_yield < selection_size, (nb_yield, selection_size)
+        yield from poolling({u: s for s, us in units_per_score.items() for u in us}, pool_size=pool_size, selection_size=selection_size - nb_yield, unique=False)
+
+
+def non_linear_likelihood(scored_units: dict['indiv', 'score'], selection_size:int or float=DEFAULT_SELECTION_SIZE, *, prob_func = DEFAULT_PROB_FUNCTION) -> iter:
+    """Yield selected individuals"""
+    # ensure selection_size is (or can be translated to) an integer giving the exact amount of units to return
+    if not isinstance(selection_size, int):
+        assert isinstance(selection_size, float), "Input selection_size should be int or float"
+        assert 0. <= selection_size <= 1., "Input selection_size should be in [0;1]"
+        selection_size = max(1, int(round(selection_size * len(scored_units))))
+    assert selection_size > 0, "selection_size can't be equal to {} ({})".format(selection_size, type(selection_size))
+
+    if selection_size > len(scored_units):
+        raise ValueError(f"Can't select {selection_size} of {len(scored_units)} scored units.")
+
+    minscore, maxscore = min(scored_units.values()).score, max(scored_units.values()).score  # RunResult instances must only provide their score
+    pfunc = partial(prob_func, mn=minscore, mx=maxscore)
 
     nb_yield = 0
     while nb_yield < selection_size:
-        for score in scores:
-            pool = units_per_score[score]
-            for unit, _ in zip(pool, range(pool_size)):
-                yield unit, score
+        for unit, score in scored_units.items():
+            if random.random() < pfunc(score.score):
                 nb_yield += 1
-                if nb_yield >= selection_size:
-                    return  # selection size is reached
+                yield unit, score

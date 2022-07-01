@@ -42,7 +42,7 @@ def run_simple_cases(saver:Saver):
     # build the motif
     config = Configuration.recipe_best_solution_so_far()
     config = Configuration()
-    config = Configuration.recipe_using_standard_methods()
+    # config = Configuration.recipe_using_standard_methods()
     for case_name, case in CASES.items():
         print('#'*80)
         print('#', case_name)

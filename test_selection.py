@@ -1,6 +1,23 @@
 
 import pytest
+import selection
+from unit import Unit
 from selection import DEFAULT_PROB_FUNCTION
+
+
+
+def test_selection_pooling_with_too_little_data():
+    "How does the selection handle when there is not enough element to yield ?"
+    units = {Unit('+'): 1, Unit('+'): 1}
+
+    # should not allow to select more units than present in the population
+    with pytest.raises(ValueError):
+        found = tuple(selection.poolling(units, selection_size=3))
+
+    # this may hang, if pooling fails to see that what we ask are impossible
+    found = tuple(selection.poolling(units, selection_size=2, unique=True))
+    print(found)
+    assert found
 
 
 def test_default_prob_function():
