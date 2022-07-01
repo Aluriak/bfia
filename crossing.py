@@ -14,6 +14,7 @@ As output, crossing functions return a single string of brainfuck source code.
 import utils
 import random
 import itertools
+import collections
 
 from unit import Unit
 from utils import grouper, named_functions_interface_decorator
@@ -23,10 +24,12 @@ from utils import grouper, named_functions_interface_decorator
 def named_functions() -> dict:
     """Return selection functions"""
     return {
-        'CC': crossby_chromosomes,
+        'CM': crossby_chromosomes,
         'CP': crossby_pivot,
         'CT': crossby_token,
         'CD': crossby_difference,
+        'CR': crossby_random_draw,
+        'CC': crossby_consensus,
         # 'CU': crossby_output_unit,
     }
 
@@ -103,6 +106,35 @@ def crossby_token(parents: [Unit]) -> str:
 
 def crossby_output_unit(parents: [Unit]) -> str:
     ...
+
+
+def crossby_consensus(parents: [Unit]) -> str:
+    """For each index, takes randomly one of the most represented tokens in the parent.
+
+    It's like crossby_random_draw, but where, if there is more than 2 parents,
+    only tokens appearing the most are used.
+    In other word, it's a consensus, with random draw to break ties.
+
+    Example: for parents ++++, +-+- and ++--, only child is +++-.
+
+    """
+    acc = []
+    for tokens in itertools.zip_longest(*(p.source for p in parents), fillvalue=''):
+        c = collections.Counter(tokens)
+        maxcount = max(c.values())
+        acc.append(random.choice([t for t in tokens if c[t] == maxcount]))
+    return ''.join(acc)
+
+
+def crossby_random_draw(parents: [Unit]) -> str:
+    """For each index, takes randomly one of the available tokens in the parent.
+
+    Hence, parents +++- and +-++ may yield +++-, ++++, +-+- or +-++.
+
+    """
+    per_index_tokens = itertools.zip_longest(*(p.source for p in parents), fillvalue='')
+    # inner join is needed so that empty string is not available for random.choice.
+    return ''.join(random.choice(''.join(tokens)) for tokens in per_index_tokens)
 
 
 def crossby_difference(parents: [Unit]) -> str:
