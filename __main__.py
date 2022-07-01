@@ -114,6 +114,8 @@ def main(saver:Saver=None):
             except KeyboardInterrupt:
                 pass
         saver.commit()
+        saver.discretize()
+        saver.discretize(table=False)
         saver.plot()
 
 

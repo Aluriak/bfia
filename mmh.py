@@ -54,8 +54,7 @@ class MMH:
         print('MMH CONFIG:\n' + str(self.config))
 
 
-    @property
-    def genalg_functions(self) -> dict:
+    def get_specific_genalg_functions(self) -> dict:
         return {
             'score': self.config.score,
             'select': self.config.select,
@@ -98,6 +97,13 @@ class MMH:
 
     def step(self):
         """Compute next step"""
+        self.changed_config = self.change_config_at(self.current_step)
+        if self.changed_config:
+            self._init_config()
+
+        if self.prompt_at(self.current_step):
+            input('?')
+
         new_pops = []
         for pop in self.populations:
             len_pop = len(pop)
@@ -109,19 +115,16 @@ class MMH:
         self.populations = tuple(new_pops)
 
         self.current_step += 1
-        if self.change_config_at(self.current_step):
-            self._init_config()
-        if self.prompt_at(self.current_step):
-            input('?')
 
         return self.populations
 
 
     def algogen_call(self, pop) -> tuple:
         """Call algogen step function, return the StepResult instance"""
+        self.current_config = self.get_specific_genalg_functions()
         return self.config.step(
             pop, self.case, self.pop_size,
-            **self.genalg_functions,
+            **self.current_config,
             step_number=self.current_step,
             callback_stats=self.callback_stat_adaptator,
         )

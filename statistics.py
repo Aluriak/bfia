@@ -17,6 +17,8 @@ import commons
 
 
 
+
+
 def plotter(df, config_change_steps: list[int]):
     ax = df.plot(x='step', y=['max_score', 'min_score'])
     ax = df.plot(x='step', y='diversity',secondary_y=True, ax=ax)
@@ -108,6 +110,37 @@ class Saver:
         print(df)
         plot = self.plotter(df, self.config_change_steps)
         plt.show()
+
+
+    def discretize(self, csv_filename: str = None, profile_filename: str = None, table: bool = True):
+        if not csv_filename:
+            csv_filename = max(Saver.data_files())
+        df = pd.read_csv(csv_filename)
+
+        # self.config_change_steps.append(len(df)+1)  # don't ignore the last fragment
+
+        print(df)
+        print(self.config_change_steps)
+
+        print(utils.get_series_profile_header())
+        if table:
+            print(' '.rjust(11) + '_' * 20)
+        for start, stop in utils.window(self.config_change_steps, size=2):
+            # print(start, stop)
+            fragment = df[start-1:stop-1]
+            # print(fragment)
+            # print(list(df[start:stop]['diversity']))
+            profile = {}  # signal name -> series profile
+            for signal in 'diversity,max_score,min_score'.split(','):
+                profile[signal] = utils.get_series_profile(list(fragment[signal]), human_readable=not table)
+                if table:
+                    print(f'{start}:{stop}:{signal[:3]} |'.rjust(11), ''.join('X'if v else '.' for v in profile[signal]), '|', '  ' + utils.profile_name_from(profile[signal]))
+                else:
+                    print(f'{start}:{stop}:{signal[:3]} |'.rjust(11), ', '.join(profile[signal]), '  ' + utils.profile_name_from(profile[signal]))
+            # print(profile)
+            if table:
+                print(' '.rjust(10) + '| ' + '—'*len(profile[signal]) + ' |')
+
 
 
 class ScoreSaver(Saver):

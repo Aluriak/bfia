@@ -4,7 +4,7 @@
 
 import itertools
 import functools
-from collections import defaultdict
+from collections import defaultdict, deque
 
 from numpy.random import default_rng
 np_rng = default_rng()  # replace np.random ; see https://numpy.org/doc/stable/reference/random/index.html#random-quick-start
@@ -120,3 +120,74 @@ def choices(population: iter, weights = None, k: int = 1, replacement: bool = Fa
     assert len(population) >= k, (len(population), k)
     return np_rng.choice(list(population), size=k, replace=replacement, p=weights)
 
+
+def window(it:iter, size:int=2):
+    it = iter(it)
+    window = deque(itertools.islice(it, 0, size), maxlen=size)
+    while True:
+        yield tuple(window)
+        try:
+            window.append(next(it))
+        except StopIteration:
+            return
+
+
+def get_series_profile_header(*, values = ('max', 'min', 'start', 'stop'), funcs = ('smaller', 'equal', 'greater')):
+    return sum((
+        [(va, func, vb) for va, vb in itertools.combinations(values, r=2)]
+        for func in funcs
+    ), start=[])
+
+
+def profile_name_from(profile: list[bool], names: dict = None) -> str:
+    named = names or {
+        '.........XXXXXX...': 'mountain',
+        '......XXXXXX......': 'constant',
+        '....XX...X..XXX...': 'mitigated raise',
+        '....XX..XX..XX....': 'bounded rise',
+        '...X......X.XXX..X': 'failed soar',
+        '...X......XXXXX...': 'mountain',
+        '...X...X..X.X.X..X': 'fall',
+        '...XX.......XXX..X': 'falling unstable',
+        '...XX......XXXX...': 'constant unstable',
+        '...XX..X....X.X..X': 'mitigated fall',
+        '...XX..XX..XX.....': 'trench',
+        '...XXX......XXX...': 'raising unstable',
+        '...XXX..X...XX....': 'raising unstable',
+    }
+    profrepr = ''.join('X' if v else '.' for v in profile)
+    return named.get(profrepr, '?')
+
+
+def get_series_profile(series: iter, delta: callable = lambda x, n, s, e: ((x - n) / 20.), human_readable: bool = False) -> list[bool] | list[str]:
+    """Return the list of booleans indicating for each field indicated by get_series_profile_header() call
+    whether the property holds or not for given series of numbers.
+
+    series -- an iterable of numbers
+    delta -- a function computing the value under which two numbers are considered equal
+    human_readable -- output list of text instead of a list of boolean
+
+    By default, computed delta is 5% of the series dynamic.
+
+    """
+    values = dict(max=max(series), min=min(series), start=series[0], stop=series[-1])
+    deltav = delta(*values.values())
+
+    def smaller(a, b) -> bool:
+        "smaller than"
+        return a - b < 0 and not equal(a, b)
+    def equal(a, b) -> bool:
+        "equal to"
+        return abs(a - b) <= deltav
+    def greater(a, b) -> bool:
+        "greater than"
+        return a - b > 0 and not equal(a, b)
+
+    if human_readable:
+        def frepr(a, f, b):
+            return f'{a} {f.__doc__} {b}' if f(values[a], values[b]) else 'X'
+    else:
+        def frepr(a, f, b):
+            return bool(f(values[a], values[b]))
+
+    return list(itertools.starmap(frepr, get_series_profile_header(funcs=(smaller, equal, greater))))
