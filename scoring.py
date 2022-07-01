@@ -22,6 +22,7 @@ c_func_compare_str.restype = ctypes.c_uint64  # specify output type
 
 RunResult = namedtuple('RunResult', 'score expected found')
 SCORE_BASE = 10_000
+SCORE_MINIMAL = 0  # any score below this threshold will be set to this threshold
 
 UINT8_MAX = 255  # comes from C stdint.h
 
@@ -57,7 +58,7 @@ def io_comparison_with_bonus(unit, test, interpreter=INTERPRETER, bonus=SCORE_BA
     score, expected, found = io_comparison(unit, test, interpreter)
     if bonus and found == expected:
         score += bonus  # scores of successful units belong to another scoring level.
-    return RunResult(int(score), expected, found)
+    return RunResult(max(SCORE_MINIMAL, int(score)), expected, found)
 
 
 def io_comparison_with_size_malus(unit, test, interpreter=INTERPRETER, malus=1) -> float:
@@ -66,7 +67,7 @@ def io_comparison_with_size_malus(unit, test, interpreter=INTERPRETER, malus=1) 
     """
     score, expected, found = io_comparison(unit, test, interpreter)
     score -= len(unit.source) * malus
-    return RunResult(score, expected, found)
+    return RunResult(max(SCORE_MINIMAL, int(score)), expected, found)
 
 
 def io_comparison(unit, test, interpreter=INTERPRETER) -> float:
@@ -76,7 +77,7 @@ def io_comparison(unit, test, interpreter=INTERPRETER) -> float:
     # print('UOGHDP:', interpreter.inline.cache_info())
     assert len(expected) < MAX_OUT_SIZE
     score = SCORE_BASE - compare_str(expected, found)
-    return RunResult(score, expected, found)
+    return RunResult(max(SCORE_MINIMAL, int(score)), expected, found)
 
 
 def io_comparison_with_bonus_and_size_malus(unit, test, interpreter=INTERPRETER, bonus=SCORE_BASE, malus=1) -> float:
@@ -87,7 +88,7 @@ def io_comparison_with_bonus_and_size_malus(unit, test, interpreter=INTERPRETER,
     if bonus and found == expected:
         score += bonus  # scores of successful units belong to another scoring level.
     score -= len(unit.source) * malus
-    return RunResult(int(score), expected, found)
+    return RunResult(max(SCORE_MINIMAL, int(score)), expected, found)
 
 
 def compare_str_c(one, two) -> int:
